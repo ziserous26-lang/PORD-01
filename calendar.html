@@ -1,0 +1,1024 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>PORD-01 | Calendar</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: auto;
+      padding: 25px 35px;
+    }
+
+    header, .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    header { margin-bottom: 35px; }
+
+    .logo {
+      font-size: 27px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    button {
+      background: #29465c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:active { background: #41627b; }
+
+    h1 {
+      font-size: 36px;
+      margin: 0;
+    }
+
+    .calendar-header {
+      margin-bottom: 25px;
+    }
+
+    .navigation {
+      display: flex;
+      gap: 10px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .weekday {
+      text-align: center;
+      color: #a7b9c7;
+      padding: 15px 0;
+      font-weight: bold;
+    }
+
+    .day {
+      min-height: 115px;
+      background: #1c3040;
+      border-radius: 9px;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .day.other-month {
+      opacity: 0.35;
+    }
+
+    .day.today {
+      outline: 2px solid #8fc5ef;
+    }
+
+    .day-number {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .event {
+      background: #3e6c8a;
+      border-radius: 5px;
+      padding: 6px;
+      font-size: 12px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+
+    .event:active {
+      background: #578eaf;
+    }
+
+    .selected-event {
+      background: #24394b;
+      border-left: 6px solid #8fc5ef;
+      padding: 22px;
+      border-radius: 10px;
+      margin-top: 25px;
+    }
+
+    .selected-event h2 {
+      margin-top: 0;
+    }
+
+    .status {
+      color: #a7b9c7;
+      margin-top: 18px;
+    }
+
+    .error { color: #ff9e91; }
+
+    @media (max-width: 750px) {
+      .page { padding: 15px; }
+
+      h1 { font-size: 25px; }
+
+      .day {
+        min-height: 75px;
+        padding: 5px;
+      }
+
+      .day-number { font-size: 13px; }
+
+      .event {
+        font-size: 10px;
+        padding: 4px;
+      }
+
+      button {
+        padding: 9px 12px;
+        font-size: 13px;
+      }
+    }
+
+.event-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.event-form {
+  background: #24394b;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.event-form[hidden] {
+  display: none;
+}
+
+.event-form h2 {
+  margin-top: 0;
+}
+
+.event-form label {
+  display: block;
+  margin: 15px 0 7px;
+  color: #c4d3de;
+}
+
+.event-form input,
+.event-form textarea,
+.event-form select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #526a7d;
+  border-radius: 8px;
+  background: #152735;
+  color: white;
+  font: inherit;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+#saveEventButton {
+  background: #397c65;
+}
+
+#formMessage {
+  color: #ffb5a9;
+}
+
+.event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+#editEventButton {
+  background: #397c65;
+}
+
+#deleteEventButton {
+  background: #a04444;
+}
+
+#editEventButton:active {
+  background: #4b9b80;
+}
+
+#deleteEventButton:active {
+  background: #bb5555;
+}
+
+.event-form .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.event-form .checkbox-row input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header>
+      <div class="logo">PORD-01</div>
+      <button onclick="location.href='dashboard.html'">
+        ← Dashboard
+      </button>
+    </header>
+
+    <div class="calendar-header">
+      <h1 id="monthTitle">Calendar</h1>
+
+      <div class="navigation">
+        <button id="previousMonth">‹</button>
+        <button id="todayButton">Today</button>
+        <button id="nextMonth">›</button>
+      </div>
+    </div>
+
+<div class="event-toolbar">
+  <button id="addEventButton" type="button">
+    + Add Event
+  </button>
+</div>
+
+<form id="eventForm" class="event-form" hidden>
+  <h2>Create New Event</h2>
+
+  <label for="newTitle">Event Name</label>
+  <input id="newTitle" type="text" required>
+
+  <label for="newDescription">Description</label>
+  <textarea id="newDescription" rows="3"></textarea>
+
+  <label for="newCategory">Category</label>
+  <select id="newCategory">
+    <option value="Family">Family</option>
+    <option value="Personal">Personal</option>
+    <option value="Work">Work</option>
+    <option value="Other">Other</option>
+  </select>
+
+<label for="newRecurrence">Repeat</label>
+<select id="newRecurrence">
+  <option value="none">Does Not Repeat</option>
+  <option value="daily">Every Day</option>
+  <option value="weekly">Every Week</option>
+  <option value="monthly">Every Month</option>
+  <option value="yearly">Every Year</option>
+</select>
+
+<label class="checkbox-row" for="newAllDay">
+  <input id="newAllDay" type="checkbox">
+  All-Day Event
+</label>
+
+  <label for="newStart">Start Date and Time</label>
+  <input id="newStart" type="datetime-local" required>
+
+  <label for="newEnd">End Date and Time</label>
+  <input id="newEnd" type="datetime-local">
+
+  <div class="form-actions">
+    <button type="submit" id="saveEventButton">
+      Save Event
+    </button>
+    <button type="button" id="cancelEventButton">
+      Cancel
+    </button>
+  </div>
+
+  <p id="formMessage" role="status"></p>
+</form>
+
+    <div class="calendar" id="calendar"></div>
+
+    
+<div class="selected-event" id="eventDetails" hidden>
+  <h2 id="eventTitle"></h2>
+  <p id="eventDate"></p>
+  <p id="eventDescription"></p>
+
+  <div class="event-actions">
+    <button id="editEventButton" type="button">
+      ✏️ Edit Event
+    </button>
+
+    <button id="deleteEventButton" type="button">
+      🗑️ Delete Event
+    </button>
+  </div>
+</div>
+
+
+    <div class="status" id="status">
+      Connecting to Supabase...
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    let currentMonth = new Date();
+    currentMonth.setDate(1);
+
+    let events = [];
+let selectedEventId = null;
+let editingEventId = null;
+    const calendarElement =
+      document.getElementById("calendar");
+
+    const statusElement =
+      document.getElementById("status");
+
+    function dateKey(date) {
+      const year = date.getFullYear();
+      const month = String(
+        date.getMonth() + 1
+      ).padStart(2, "0");
+      const day = String(
+        date.getDate()
+      ).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function showEvent(event) {
+        selectedEventId = event.id;
+      document.getElementById("eventDetails")
+        .hidden = false;
+
+      document.getElementById("eventTitle")
+        .textContent = event.title;
+
+      
+const eventDate = new Date(event.start_time);
+
+const formattedDate = eventDate.toLocaleDateString([], {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric"
+});
+
+if (event.all_day) {
+  document.getElementById("eventDate")
+    .textContent = formattedDate + " — All Day";
+} else {
+  const formattedTime = eventDate.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+  document.getElementById("eventDate")
+    .textContent = formattedDate + " at " + formattedTime;
+}
+
+
+      document.getElementById("eventDescription")
+        .textContent = event.description || "";
+
+      document.getElementById("eventDetails")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "nearest"
+        });
+    }
+
+function occursOnDate(event, date) {
+  const start = new Date(event.start_time);
+
+  // Compare local calendar dates without comparing times.
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+
+  const targetDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+
+  // Events cannot repeat before their original date.
+  if (targetDay < startDay) return false;
+
+  const recurrence = event.recurrence || "none";
+
+  if (recurrence === "none") {
+    return targetDay.getTime() === startDay.getTime();
+  }
+
+  if (recurrence === "daily") {
+    return true;
+  }
+
+  if (recurrence === "weekly") {
+    return targetDay.getDay() === startDay.getDay();
+  }
+
+  if (recurrence === "monthly") {
+    return targetDay.getDate() === startDay.getDate();
+  }
+
+  if (recurrence === "yearly") {
+    return (
+      targetDay.getMonth() === startDay.getMonth() &&
+      targetDay.getDate() === startDay.getDate()
+    );
+  }
+
+  return false;
+}
+
+    function renderCalendar() {
+      calendarElement.innerHTML = "";
+
+      document.getElementById("monthTitle")
+        .textContent =
+          currentMonth.toLocaleDateString([], {
+            month: "long",
+            year: "numeric"
+          });
+
+      const weekdays = [
+        "Sun", "Mon", "Tue", "Wed",
+        "Thu", "Fri", "Sat"
+      ];
+
+      for (const weekday of weekdays) {
+        const label = document.createElement("div");
+        label.className = "weekday";
+        label.textContent = weekday;
+        calendarElement.appendChild(label);
+      }
+
+      const firstDay = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        1
+      );
+
+      const gridStart = new Date(firstDay);
+      gridStart.setDate(
+        gridStart.getDate() - gridStart.getDay()
+      );
+
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(gridStart);
+        date.setDate(gridStart.getDate() + i);
+
+        const cell = document.createElement("div");
+        cell.className = "day";
+
+        if (
+          date.getMonth() !== currentMonth.getMonth()
+        ) {
+          cell.classList.add("other-month");
+        }
+
+        if (
+          dateKey(date) === dateKey(new Date())
+        ) {
+          cell.classList.add("today");
+        }
+
+        const number = document.createElement("div");
+        number.className = "day-number";
+        number.textContent = date.getDate();
+        cell.appendChild(number);
+
+        const dayEvents = events.filter(event =>
+  occursOnDate(event, date)
+);
+
+        for (const event of dayEvents) {
+          const item = document.createElement("div");
+          item.className = "event";
+          item.textContent = event.title;
+
+          item.addEventListener("click", () => {
+            showEvent(event);
+          });
+
+          cell.appendChild(item);
+        }
+
+        calendarElement.appendChild(cell);
+      }
+    }
+
+    async function loadEvents() {
+      try {
+        const { data: authData, error: authError } =
+          await client.auth.getUser();
+
+        if (authError || !authData.user) {
+          throw new Error(
+            "Please sign in through index.html first."
+          );
+        }
+
+        const { data, error } = await client
+          .from("events")
+          .select("*")
+          .eq("user_id", authData.user.id)
+          .order("start_time", { ascending: true });
+
+        if (error) throw error;
+
+        events = data || [];
+
+        const params = new URLSearchParams(
+          location.search
+        );
+
+        const selectedId = params.get("id");
+
+        if (selectedId) {
+          const selected = events.find(
+            event => event.id === selectedId
+          );
+
+          if (selected) {
+            currentMonth = new Date(
+              selected.start_time
+            );
+            currentMonth.setDate(1);
+            showEvent(selected);
+          } else {
+            statusElement.textContent =
+              "The selected event could not be found.";
+          }
+        }
+
+        renderCalendar();
+
+        if (!selectedId || events.some(
+          event => event.id === selectedId
+        )) {
+          statusElement.textContent =
+            "Connected to Supabase";
+        }
+
+      } catch (error) {
+        statusElement.classList.add("error");
+        statusElement.textContent = error.message;
+      }
+    }
+
+    document.getElementById("previousMonth")
+      .addEventListener("click", () => {
+        currentMonth.setMonth(
+          currentMonth.getMonth() - 1
+        );
+        renderCalendar();
+      });
+
+    document.getElementById("nextMonth")
+      .addEventListener("click", () => {
+        currentMonth.setMonth(
+          currentMonth.getMonth() + 1
+        );
+        renderCalendar();
+      });
+
+    document.getElementById("todayButton")
+      .addEventListener("click", () => {
+        currentMonth = new Date();
+        currentMonth.setDate(1);
+        renderCalendar();
+      });
+
+const eventForm = document.getElementById("eventForm");
+
+eventForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const saveButton =
+    document.getElementById("saveEventButton");
+
+  const formMessage =
+    document.getElementById("formMessage");
+
+  saveButton.disabled = true;
+  formMessage.textContent = "Saving event...";
+
+  try {
+    const { data: authData, error: authError } =
+      await client.auth.getUser();
+
+    if (authError || !authData.user) {
+      throw new Error("Please sign in again.");
+    }
+
+    const title =
+      document.getElementById("newTitle").value.trim();
+
+    const description =
+      document.getElementById("newDescription").value.trim();
+
+    const category =
+      document.getElementById("newCategory").value;
+
+    const startValue =
+      document.getElementById("newStart").value;
+
+    const endValue =
+      document.getElementById("newEnd").value;
+
+    if (!title || !startValue) {
+      throw new Error(
+        "Event name and start date are required."
+      );
+    }
+
+    
+const allDay =
+  document.getElementById("newAllDay").checked;
+
+let startDate;
+let endDate;
+
+if (allDay) {
+  // Use local noon to keep the selected calendar
+  // date stable across time zones.
+  startDate = new Date(startValue + "T12:00:00");
+
+  endDate = endValue
+    ? new Date(endValue + "T12:00:00")
+    : null;
+} else {
+  startDate = new Date(startValue);
+
+  endDate = endValue
+    ? new Date(endValue)
+    : null;
+}
+
+if (
+  Number.isNaN(startDate.getTime()) ||
+  (endDate && Number.isNaN(endDate.getTime()))
+) {
+  throw new Error("Please enter valid dates.");
+}
+
+if (endDate && endDate < startDate) {
+  throw new Error(
+    "End date cannot be before start date."
+  );
+}
+
+const eventData = {
+  user_id: authData.user.id,
+  title: title,
+  description: description || null,
+  category: category,
+  start_time: startDate.toISOString(),
+  end_time: endDate ? endDate.toISOString() : null,
+  all_day: allDay,
+recurrence: document.getElementById("newRecurrence").value
+};
+
+let query;
+
+if (editingEventId) {
+  query = client
+    .from("events")
+    .update(eventData)
+    .eq("id", editingEventId)
+    .eq("user_id", authData.user.id);
+} else {
+  query = client
+    .from("events")
+    .insert(eventData);
+}
+
+const { data, error } = await query
+  .select()
+  .single();
+
+
+    if (error) throw error;
+
+    // Add the new event to the calendar immediately.
+    if (editingEventId) {
+  const index = events.findIndex(
+    event => event.id === editingEventId
+  );
+
+  if (index !== -1) {
+    events[index] = data;
+  }
+} else {
+  events.push(data);
+}
+
+editingEventId = null;
+
+    events.sort((a, b) =>
+      new Date(a.start_time) - new Date(b.start_time)
+    );
+
+    currentMonth = new Date(data.start_time);
+    currentMonth.setDate(1);
+
+    renderCalendar();
+    showEvent(data);
+
+   eventForm.reset();
+updateAllDayFields();
+eventForm.hidden = true;
+
+    statusElement.classList.remove("error");
+    statusElement.textContent =
+      "Event saved successfully!";
+
+  } catch (error) {
+    formMessage.textContent = error.message;
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+
+document.getElementById("addEventButton")
+  .addEventListener("click", () => {
+    editingEventId = null;
+eventForm.reset();
+updateAllDayFields();
+eventForm.querySelector("h2").textContent = "Create New Event";
+document.getElementById("saveEventButton").textContent = "Save Event";
+    eventForm.hidden = false;
+    document.getElementById("formMessage")
+      .textContent = "";
+  });
+
+document.getElementById("cancelEventButton")
+  .addEventListener("click", () => {
+    eventForm.hidden = true;
+    eventForm.reset();
+    updateAllDayFields();
+    editingEventId = null;
+
+    eventForm.querySelector("h2").textContent =
+      "Create New Event";
+
+    document.getElementById("saveEventButton")
+      .textContent = "Save Event";
+  });
+
+document.getElementById("editEventButton")
+  .addEventListener("click", () => {
+
+    const selected = events.find(
+      event => event.id === selectedEventId
+    );
+
+    if (!selected) {
+      alert("Please select an event first.");
+      return;
+    }
+
+    editingEventId = selected.id;
+    document.getElementById("newRecurrence").value =
+  selected.recurrence || "none";
+
+    document.getElementById("newTitle").value =
+      selected.title;
+
+    document.getElementById("newDescription").value =
+      selected.description || "";
+
+    document.getElementById("newCategory").value =
+      selected.category;
+
+    function toLocalInput(value) {
+      if (!value) return "";
+
+      const date = new Date(value);
+      const local = new Date(
+        date.getTime() -
+        date.getTimezoneOffset() * 60000
+      );
+
+      return local.toISOString().slice(0, 16);
+    }
+
+    
+const isAllDay = selected.all_day === true;
+
+document.getElementById("newAllDay").checked =
+  isAllDay;
+
+updateAllDayFields();
+
+if (isAllDay) {
+  const toDateOnly = value => {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  };
+
+  document.getElementById("newStart").value =
+    toDateOnly(selected.start_time);
+
+  document.getElementById("newEnd").value =
+    toDateOnly(selected.end_time);
+
+} else {
+  document.getElementById("newStart").value =
+    toLocalInput(selected.start_time);
+
+  document.getElementById("newEnd").value =
+    toLocalInput(selected.end_time);
+}
+
+
+    eventForm.querySelector("h2").textContent =
+      "Edit Event";
+
+    document.getElementById("saveEventButton")
+      .textContent = "Save Changes";
+
+    document.getElementById("formMessage")
+      .textContent = "";
+
+    eventForm.hidden = false;
+
+    eventForm.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  });
+
+document.getElementById("deleteEventButton")
+  .addEventListener("click", async () => {
+
+    const selected = events.find(
+      event => event.id === selectedEventId
+    );
+
+    if (!selected) {
+      alert("Please select an event first.");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Are you sure you want to delete "${selected.title}"?\n\n` +
+      "This action cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    const deleteButton =
+      document.getElementById("deleteEventButton");
+
+    deleteButton.disabled = true;
+
+    try {
+      const { data: authData, error: authError } =
+        await client.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error("Please sign in again.");
+      }
+
+      const { data: deleted, error } = await client
+        .from("events")
+        .delete()
+        .eq("id", selectedEventId)
+        .eq("user_id", authData.user.id)
+        .select("id");
+
+      if (error) throw error;
+
+      if (!deleted || deleted.length !== 1) {
+        throw new Error(
+          "The event could not be deleted. Please refresh and try again."
+        );
+      }
+
+      // Remove the deleted event from the calendar.
+      events = events.filter(
+        event => event.id !== selectedEventId
+      );
+
+      selectedEventId = null;
+      editingEventId = null;
+
+      document.getElementById("eventDetails")
+        .hidden = true;
+
+      eventForm.hidden = true;
+      eventForm.reset();
+
+      renderCalendar();
+
+      statusElement.classList.remove("error");
+      statusElement.textContent =
+        "Event deleted successfully.";
+
+    } catch (error) {
+      statusElement.classList.add("error");
+      statusElement.textContent =
+        "Delete failed: " + error.message;
+    } finally {
+      deleteButton.disabled = false;
+    }
+  });
+
+const allDayCheckbox =
+  document.getElementById("newAllDay");
+
+const startInput =
+  document.getElementById("newStart");
+
+const endInput =
+  document.getElementById("newEnd");
+
+function updateAllDayFields() {
+  const allDay = allDayCheckbox.checked;
+
+  if (allDay && startInput.type !== "date") {
+    startInput.value = startInput.value.slice(0, 10);
+    endInput.value = endInput.value.slice(0, 10);
+  }
+
+  if (!allDay && startInput.type !== "datetime-local") {
+    startInput.value = startInput.value
+      ? startInput.value + "T09:00" : "";
+
+    endInput.value = endInput.value
+      ? endInput.value + "T10:00" : "";
+  }
+
+  startInput.type = allDay ? "date" : "datetime-local";
+  endInput.type = allDay ? "date" : "datetime-local";
+
+  document.querySelector('label[for="newStart"]')
+    .textContent = allDay
+      ? "Start Date" : "Start Date and Time";
+
+  document.querySelector('label[for="newEnd"]')
+    .textContent = allDay
+      ? "End Date" : "End Date and Time";
+}
+
+allDayCheckbox.addEventListener(
+  "change", updateAllDayFields
+);
+
+    renderCalendar();
+    loadEvents();
+  </script>
+</body>
+</html>

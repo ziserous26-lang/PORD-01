@@ -1,0 +1,691 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>PORD-01 | Projects</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 36px;
+    }
+
+    button {
+      background: #397c65;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.15);
+    }
+
+    .back-button {
+      background: #30485b;
+    }
+
+    .project-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .project-card {
+      background: #1c3040;
+      padding: 24px;
+      border-radius: 12px;
+      border-left: 6px solid #397c65;
+    }
+
+    .project-card h2 {
+      margin-top: 0;
+    }
+
+    .project-description {
+      color: #bdcbd6;
+      line-height: 1.5;
+    }
+
+    .project-dates {
+      color: #9eb5c7;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .status {
+      margin-top: 25px;
+      color: #a9c4d5;
+    }
+
+    .error {
+      color: #ff8c8c;
+    }
+
+.project-form {
+  background: #1c3040;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.project-form[hidden] {
+  display: none;
+}
+
+.project-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.project-form label {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #d4e0e8;
+}
+
+.project-form input,
+.project-form textarea {
+  width: 100%;
+  padding: 12px;
+  background: #101d29;
+  color: white;
+  border: 1px solid #486174;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.project-form textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+#projectFormMessage {
+  color: #ffaaaa;
+  margin-bottom: 0;
+}
+
+.project-card {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.project-card:hover {
+  background: #294459;
+  transform: translateY(-3px);
+}
+
+.project-card:focus-visible {
+  outline: 3px solid #8fc5ef;
+  outline-offset: 3px;
+}
+
+
+.card-progress {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #405568;
+}
+
+.card-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #d4e0e8;
+}
+
+.card-progress-track {
+  width: 100%;
+  height: 12px;
+  background: #101d29;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.card-progress-bar {
+  height: 100%;
+  background: #397c65;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.card-progress-details {
+  margin: 10px 0 0;
+  color: #9eb5c7;
+  font-size: 13px;
+}
+
+
+.card-schedule-badge {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #30485b;
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.card-schedule-badge.on-track {
+  background: #397c65;
+}
+
+.card-schedule-badge.behind {
+  background: #b88a28;
+}
+
+.card-schedule-badge.very-behind {
+  background: #a83f3f;
+}
+
+
+.project-status {
+  display: inline-block;
+  width: fit-content;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.status-active {
+  background: #d7eee1;
+  color: #226344;
+}
+
+.status-on-hold {
+  background: #fff0c2;
+  color: #805b00;
+}
+
+.status-completed {
+  background: #dce9ff;
+  color: #2456a0;
+}
+
+
+.schedule-badge.on-hold {
+  background: #fff0c2;
+  color: #805b00;
+}
+
+.schedule-badge.completed {
+  background: #d7eee1;
+  color: #226344;
+}
+
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="header">
+      <h1>Projects</h1>
+
+      <div>
+        <button id="addProjectButton">
+          + Add Project
+        </button>
+
+        <button class="back-button"
+                onclick="location.href='dashboard.html'">
+          Dashboard
+        </button>
+      </div>
+    </div>
+
+<form id="projectForm" class="project-form" hidden>
+  <h2>Create New Project</h2>
+
+  <label for="newProjectName">Project Name</label>
+  <input
+    id="newProjectName"
+    type="text"
+    placeholder="Example: Restore Garage"
+    required
+  >
+
+  <label for="newProjectDescription">Description</label>
+  <textarea
+    id="newProjectDescription"
+    rows="4"
+    placeholder="What do you want to accomplish?"
+  ></textarea>
+
+  <label for="newProjectStart">Start Date</label>
+  <input id="newProjectStart" type="date">
+
+  <label for="newProjectDue">Target Completion Date</label>
+  <input id="newProjectDue" type="date">
+
+  <div class="form-actions">
+    <button id="saveProjectButton" type="submit">
+      Save Project
+    </button>
+
+    <button
+      id="cancelProjectButton"
+      type="button"
+      class="back-button"
+    >
+      Cancel
+    </button>
+  </div>
+
+  <p id="projectFormMessage" role="status"></p>
+</form>
+
+    <div id="projectList" class="project-list"></div>
+
+    <p id="status" class="status">
+      Connecting to Supabase...
+    </p>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const projectList =
+      document.getElementById("projectList");
+
+    const statusElement =
+      document.getElementById("status");
+
+    function formatDate(value) {
+      if (!value) return "Not set";
+
+      return new Date(value + "T12:00:00")
+        .toLocaleDateString([], {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+    }
+
+    async function loadProjects() {
+      try {
+        const { data: authData, error: authError } =
+          await client.auth.getUser();
+
+        if (authError || !authData.user) {
+          location.href = "index.html";
+          return;
+        }
+
+        const { data, error } = await client
+          .from("projects")
+          .select("*")
+          .eq("user_id", authData.user.id)
+          .order("created_at", {
+            ascending: false
+          });
+
+        if (error) throw error;
+
+        projectList.innerHTML = "";
+
+        if (!data || data.length === 0) {
+          statusElement.textContent =
+            "No projects yet. Create your first project!";
+          return;
+        }
+
+        for (const project of data) {
+
+const { data: projectTasks, error: taskError } =
+  await client
+    .from("tasks")
+    .select("completed")
+    .eq("project_id", project.id)
+    .eq("user_id", authData.user.id);
+
+if (taskError) throw taskError;
+
+const totalTasks = projectTasks.length;
+
+const completedTasks = projectTasks.filter(
+  task => task.completed === true
+).length;
+
+const progressPercentage = totalTasks > 0
+  ? Math.round((completedTasks / totalTasks) * 100)
+  : 0;
+
+       
+let scheduleStatus = "Not Scheduled";
+let scheduleClass = "not-scheduled";
+
+if (totalTasks === 0) {
+  scheduleStatus = "No Tasks";
+} else if (progressPercentage === 100) {
+  scheduleStatus = "Completed";
+  scheduleClass = "on-track";
+} else if (project.start_date && project.due_date) {
+  const start = new Date(project.start_date + "T12:00:00");
+  const due = new Date(project.due_date + "T12:00:00");
+
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+
+  const totalDays = (due - start) / 86400000;
+  const elapsedDays = (today - start) / 86400000;
+
+  if (Number.isFinite(totalDays) && totalDays > 0) {
+    const expectedProgress = Math.min(
+      100,
+      Math.max(0, (elapsedDays / totalDays) * 100)
+    );
+
+    const difference = expectedProgress - progressPercentage;
+
+    if (difference <= 10) {
+      scheduleStatus = "On Schedule";
+      scheduleClass = "on-track";
+    } else if (difference <= 25) {
+      scheduleStatus = "Behind Schedule";
+      scheduleClass = "behind";
+    } else {
+      scheduleStatus = "Very Behind";
+      scheduleClass = "very-behind";
+    }
+  } else {
+    scheduleStatus = "Invalid Dates";
+  }
+}
+
+  
+if (project.status === "on_hold") {
+  scheduleStatus = "On Hold";
+  scheduleClass = "on-hold";
+} else if (project.status === "completed") {
+  scheduleStatus = "Completed";
+  scheduleClass = "completed";
+}
+
+  const card = document.createElement("div");
+          card.className = "project-card";
+          card.tabIndex = 0;
+card.setAttribute("role", "link");
+card.setAttribute(
+  "aria-label",
+  "Open project: " + project.name
+);
+
+card.addEventListener("click", () => {
+  location.href =
+    "project-details.html?id=" +
+    encodeURIComponent(project.id);
+});
+
+card.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    card.click();
+  }
+});
+
+          const title = document.createElement("h2");
+          title.textContent = project.name;
+
+const statusLabel = document.createElement("span");
+statusLabel.className = "project-status";
+
+if (project.status === "on_hold") {
+  statusLabel.textContent = "On Hold";
+  statusLabel.classList.add("status-on-hold");
+} else if (project.status === "completed") {
+  statusLabel.textContent = "Completed";
+  statusLabel.classList.add("status-completed");
+} else {
+  statusLabel.textContent = "Active";
+  statusLabel.classList.add("status-active");
+}
+
+
+          const description =
+            document.createElement("p");
+          description.className =
+            "project-description";
+          description.textContent =
+            project.description || "No description";
+
+          const dates = document.createElement("p");
+          dates.className = "project-dates";
+          dates.textContent =
+            "Start: " + formatDate(project.start_date) +
+            " | Due: " + formatDate(project.due_date);
+
+          card.appendChild(title);
+          card.appendChild(statusLabel);
+          card.appendChild(description);
+          card.appendChild(dates);
+
+const progressContainer = document.createElement("div");
+progressContainer.className = "card-progress";
+
+const progressHeader = document.createElement("div");
+progressHeader.className = "card-progress-header";
+
+const progressLabel = document.createElement("span");
+progressLabel.textContent = "Progress";
+
+const progressValue = document.createElement("span");
+progressValue.textContent = progressPercentage + "%";
+
+progressHeader.appendChild(progressLabel);
+progressHeader.appendChild(progressValue);
+
+const progressTrack = document.createElement("div");
+progressTrack.className = "card-progress-track";
+
+const progressBar = document.createElement("div");
+progressBar.className = "card-progress-bar";
+progressBar.style.width = progressPercentage + "%";
+
+progressTrack.appendChild(progressBar);
+
+const progressDetails = document.createElement("p");
+progressDetails.className = "card-progress-details";
+progressDetails.textContent =
+  `${completedTasks} of ${totalTasks} tasks completed`;
+
+progressContainer.appendChild(progressHeader);
+progressContainer.appendChild(progressTrack);
+progressContainer.appendChild(progressDetails);
+
+
+
+const scheduleBadge = document.createElement("div");
+scheduleBadge.className =
+  "card-schedule-badge " + scheduleClass;
+
+scheduleBadge.textContent = scheduleStatus;
+
+card.appendChild(scheduleBadge);
+
+card.appendChild(progressContainer);
+
+          projectList.appendChild(card);
+        }
+
+        statusElement.textContent =
+          data.length + " project(s) loaded.";
+
+      } catch (error) {
+
+        statusElement.classList.add("error");
+        statusElement.textContent =
+          "Error: " + error.message;
+      }
+    }
+
+const projectForm =
+  document.getElementById("projectForm");
+
+document.getElementById("addProjectButton")
+  .addEventListener("click", () => {
+    projectForm.reset();
+
+    document.getElementById("projectFormMessage")
+      .textContent = "";
+
+    projectForm.hidden = false;
+
+    projectForm.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    document.getElementById("newProjectName").focus();
+  });
+
+document.getElementById("cancelProjectButton")
+  .addEventListener("click", () => {
+    projectForm.hidden = true;
+    projectForm.reset();
+  });
+
+projectForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const saveButton =
+    document.getElementById("saveProjectButton");
+
+  const formMessage =
+    document.getElementById("projectFormMessage");
+
+  saveButton.disabled = true;
+  saveButton.textContent = "Saving...";
+  formMessage.textContent = "";
+
+  try {
+    const { data: authData, error: authError } =
+      await client.auth.getUser();
+
+    if (authError || !authData.user) {
+      throw new Error("Please sign in again.");
+    }
+
+    const name =
+      document.getElementById("newProjectName")
+        .value.trim();
+
+    const description =
+      document.getElementById("newProjectDescription")
+        .value.trim();
+
+    const startDate =
+      document.getElementById("newProjectStart").value;
+
+    const dueDate =
+      document.getElementById("newProjectDue").value;
+
+    if (!name) {
+      throw new Error("Please enter a project name.");
+    }
+
+    if (startDate && dueDate && dueDate < startDate) {
+      throw new Error(
+        "The completion date cannot be before the start date."
+      );
+    }
+
+    const { data, error } = await client
+      .from("projects")
+      .insert({
+        user_id: authData.user.id,
+        name: name,
+        description: description || null,
+        start_date: startDate || null,
+        due_date: dueDate || null,
+        status: "active"
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    projectForm.reset();
+    projectForm.hidden = true;
+
+    statusElement.classList.remove("error");
+    statusElement.textContent =
+      `Project "${data.name}" created successfully!`;
+
+    await loadProjects();
+
+  } catch (error) {
+    formMessage.textContent =
+      "Error: " + error.message;
+
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = "Save Project";
+  }
+});
+
+    loadProjects();
+  </script>
+
+</body>
+</html>

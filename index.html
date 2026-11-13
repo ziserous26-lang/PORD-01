@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PORD-01</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #182e3b;
+      font-family: Arial, sans-serif;
+      color: #182e3b;
+    }
+
+    .card {
+      width: 90%;
+      max-width: 420px;
+      padding: 35px;
+      background: white;
+      border-radius: 18px;
+    }
+
+    h1 { margin-bottom: 5px; font-size: 36px; }
+
+    .subtitle {
+      color: #647784;
+      margin-bottom: 30px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 15px;
+      border: 1px solid #d8dfe5;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #365cf0;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: 0.6; }
+
+    #message {
+      margin-top: 20px;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+    }
+
+    .success { color: #24684d; }
+    .error { color: #b33b2b; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>PORD-01</h1>
+    <p class="subtitle">
+      Planning, Organization, and Reminder Device
+    </p>
+
+    <form id="loginForm">
+      <input id="email" type="email"
+             placeholder="Email address" required>
+
+      <input id="password" type="password"
+             placeholder="Password" required>
+
+      <button id="loginButton" type="submit">
+        Sign in
+      </button>
+    </form>
+
+    <p id="message"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    // Replace these with your Supabase project values.
+    const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const form = document.getElementById("loginForm");
+    const button = document.getElementById("loginButton");
+    const message = document.getElementById("message");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      button.disabled = true;
+      message.className = "";
+      message.textContent = "Connecting to Supabase...";
+
+      try {
+        const { data, error } =
+          await client.auth.signInWithPassword({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value
+          });
+
+        if (error) throw error;
+
+        const { data: settings, error: settingsError } =
+          await client
+            .from("settings")
+            .select("*")
+            .eq("user_id", data.user.id)
+            .single();
+
+        if (settingsError) throw settingsError;
+
+        form.style.display = "none";
+        message.className = "success";
+        message.textContent =
+          "Connected successfully! PORD-01 slideshow interval: " +
+          settings.slideshow_seconds + " seconds.";
+
+      } catch (error) {
+        message.className = "error";
+        message.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

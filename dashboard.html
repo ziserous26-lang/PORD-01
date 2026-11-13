@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>PORD-01 Dashboard</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .dashboard {
+      min-height: 100vh;
+      padding: 30px 45px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .time {
+      font-size: 22px;
+      color: #c4d3de;
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 46px);
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #a7b9c7;
+      font-size: 18px;
+      margin-bottom: 35px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .tile {
+      border: none;
+      border-radius: 16px;
+      padding: 25px;
+      min-height: 150px;
+      text-align: left;
+      cursor: pointer;
+      color: white;
+      background: #22394c;
+      transition: background 0.2s;
+    }
+
+    .tile:active {
+      background: #36566c;
+    }
+
+    .tile-icon {
+      font-size: 35px;
+      margin-bottom: 18px;
+    }
+
+    .tile-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .tile-description {
+      font-size: 15px;
+      color: #c0ced8;
+    }
+
+    .calendar { background: #244b65; }
+    .projects { background: #315346; }
+    .birthdays { background: #644457; }
+    .timer { background: #635138; }
+    .settings { background: #414665; }
+    .slideshow { background: #34566a; }
+
+    @media (max-width: 700px) {
+      .dashboard {
+        padding: 20px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .tile {
+        padding: 16px;
+        min-height: 130px;
+      }
+
+      .tile-title {
+        font-size: 19px;
+      }
+
+      .tile-description {
+        font-size: 13px;
+      }
+
+      header {
+        margin-bottom: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard">
+
+    <header>
+      <div class="logo">PORD-01</div>
+      <div class="time" id="clock"></div>
+    </header>
+
+    <h1>Dashboard</h1>
+    <p class="subtitle">
+      What would you like to do?
+    </p>
+
+    <div class="grid">
+
+      <button class="tile calendar"
+              onclick="openPage('calendar.html')">
+        <div class="tile-icon">📅</div>
+        <div class="tile-title">Calendar</div>
+        <div class="tile-description">
+          View upcoming events and schedules
+        </div>
+      </button>
+
+      <button class="tile projects"
+              onclick="openPage('projects.html')">
+        <div class="tile-icon">🛠️</div>
+        <div class="tile-title">Projects</div>
+        <div class="tile-description">
+          Track projects and tasks
+        </div>
+      </button>
+
+      <button class="tile birthdays"
+              onclick="openPage('birthdays.html')">
+        <div class="tile-icon">🎂</div>
+        <div class="tile-title">Birthdays</div>
+        <div class="tile-description">
+          Important birthdays and reminders
+        </div>
+      </button>
+
+      <button class="tile timer"
+              onclick="openPage('timer.html')">
+        <div class="tile-icon">⏱️</div>
+        <div class="tile-title">Timer</div>
+        <div class="tile-description">
+          Start a countdown timer
+        </div>
+      </button>
+
+      <button class="tile settings"
+              onclick="openPage('settings.html')">
+        <div class="tile-icon">⚙️</div>
+        <div class="tile-title">Settings</div>
+        <div class="tile-description">
+          Customize your PORD-01
+        </div>
+      </button>
+
+      <button class="tile slideshow"
+              onclick="openPage('frame.html')">
+        <div class="tile-icon">▶️</div>
+        <div class="tile-title">Slideshow</div>
+        <div class="tile-description">
+          Return to the main display
+        </div>
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    function openPage(page) {
+      window.location.href = page;
+    }
+
+    function updateClock() {
+      document.getElementById("clock").textContent =
+        new Date().toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit"
+        });
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>

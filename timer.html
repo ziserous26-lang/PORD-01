@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>PORD-01 Timer</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    
+.timer-display {
+  font-size: clamp(48px, 12vw, 120px);
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  margin: 40px 0;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #30485b;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #42627c;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #a7c6df;
+      margin-bottom: 20px;
+      text-decoration: none;
+    }
+
+
+.timer-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 25px 0;
+}
+
+.timer-settings label {
+  font-size: 15px;
+  color: #a7c6df;
+}
+
+.timer-settings input {
+  width: 65px;
+  padding: 10px;
+  border: 1px solid #526879;
+  border-radius: 7px;
+  background: #1b3040;
+  color: white;
+  font-size: 18px;
+  text-align: center;
+}
+
+#setTimerButton {
+  background: #397c65;
+}
+
+#setTimerButton:hover {
+  background: #48977b;
+}
+
+
+body.timer-fullscreen {
+  padding: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+body.timer-fullscreen .back-link,
+body.timer-fullscreen h1,
+body.timer-fullscreen .timer-settings,
+body.timer-fullscreen .timer-controls {
+  display: none;
+}
+
+body.timer-fullscreen .timer-display {
+  font-size: clamp(48px, 15vw, 180px);
+  margin: 0;
+  cursor: pointer;
+}
+
+
+#timerFinishedMessage {
+  font-size: clamp(36px, 8vw, 90px);
+  font-weight: bold;
+  color: #ff5555;
+  margin: 20px 0;
+  animation: timerFlash 1s infinite;
+}
+
+#timerFinishedMessage[hidden] {
+  display: none !important;
+}
+
+@keyframes timerFlash {
+  0%, 100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.2;
+  }
+}
+
+
+body.timer-fullscreen:has(#timerFinishedMessage:not([hidden]))
+.timer-display {
+  display: none;
+}
+
+body.timer-fullscreen #timerFinishedMessage:not([hidden]) {
+  position: static;
+  width: auto;
+  margin: 0;
+  font-size: clamp(48px, 12vw, 140px);
+  cursor: pointer;
+}
+
+
+
+body.timer-fullscreen #timerFinishedMessage:not([hidden]) {
+  display: block;
+  position: static;
+  width: auto;
+  margin: 0;
+  font-size: clamp(48px, 12vw, 140px);
+  text-align: center;
+  cursor: pointer;
+}
+
+
+#dismissAlarmButton {
+  background: #873d3d;
+  color: white;
+  margin: 10px auto 25px;
+}
+
+#dismissAlarmButton:hover {
+  background: #a64b4b;
+}
+
+#dismissAlarmButton[hidden] {
+  display: none !important;
+}
+
+body.timer-fullscreen #dismissAlarmButton {
+  display: none !important;
+}
+
+
+  </style>
+</head>
+
+<body>
+
+  <a href="dashboard.html" class="back-link">
+    ← Back to Dashboard
+  </a>
+
+  <h1>Timer</h1>
+
+<div class="timer-settings">
+  <label for="timerHours">Hours</label>
+  <input id="timerHours" type="number" min="0" max="99" value="0">
+
+  <label for="timerMinutes">Minutes</label>
+  <input id="timerMinutes" type="number" min="0" max="59" value="5">
+
+  <label for="timerSeconds">Seconds</label>
+  <input id="timerSeconds" type="number" min="0" max="59" value="0">
+
+  <button id="setTimerButton" type="button">
+    Set Timer
+  </button>
+</div>
+
+  <div class="timer-display" id="timerDisplay">
+    05:00
+  </div>
+
+
+<div id="timerFinishedMessage" hidden>
+  TIME'S UP!
+</div>
+
+
+<button id="dismissAlarmButton" type="button" hidden>
+  Dismiss Alarm
+</button>
+
+
+  <div class="timer-controls">
+    <button id="startButton">Start</button>
+    <button id="pauseButton">Pause</button>
+    <button id="resetButton">Reset</button>
+
+<button id="fullscreenButton" type="button">
+  Fullscreen
+</button>
+
+  </div>
+
+<script>
+const timerFinishedMessage =
+  document.getElementById("timerFinishedMessage");
+
+  const dismissAlarmButton =
+  document.getElementById("dismissAlarmButton");
+
+
+let audioContext = null;
+let alarmInterval = null;
+
+function playAlarmBeep() {
+  if (!audioContext) return;
+
+  const oscillator = audioContext.createOscillator();
+  const volume = audioContext.createGain();
+
+  oscillator.type = "sine";
+  oscillator.frequency.value = 880;
+
+  volume.gain.setValueAtTime(
+    0.15,
+    audioContext.currentTime
+  );
+
+  oscillator.connect(volume);
+  volume.connect(audioContext.destination);
+
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.25);
+}
+
+function startAlarm() {
+  if (alarmInterval !== null) return;
+
+  playAlarmBeep();
+
+  alarmInterval = setInterval(() => {
+    playAlarmBeep();
+  }, 700);
+}
+
+
+
+dismissAlarmButton.addEventListener("click", () => {
+  stopAlarm();
+  hideFinishedMessage();
+});
+
+
+
+function stopAlarm() {
+  if (alarmInterval !== null) {
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+}
+
+
+
+function hideFinishedMessage() {
+  timerFinishedMessage.hidden = true;
+  dismissAlarmButton.hidden = true;
+}
+
+
+  const timerDisplay =
+    document.getElementById("timerDisplay");
+
+  const startButton =
+    document.getElementById("startButton");
+
+  const pauseButton =
+    document.getElementById("pauseButton");
+
+  const resetButton =
+    document.getElementById("resetButton");
+
+  let startingTime = 5 * 60;
+
+  let remainingSeconds = startingTime;
+  let timerInterval = null;
+  let endTime = null;
+
+  
+function updateDisplay() {
+  const hours = Math.floor(remainingSeconds / 3600);
+
+  const minutes = Math.floor(
+    (remainingSeconds % 3600) / 60
+  );
+
+  const seconds = remainingSeconds % 60;
+
+  const formattedMinutes =
+    String(minutes).padStart(2, "0");
+
+  const formattedSeconds =
+    String(seconds).padStart(2, "0");
+
+  if (hours > 0) {
+    timerDisplay.textContent =
+      String(hours).padStart(2, "0") + ":" +
+      formattedMinutes + ":" +
+      formattedSeconds;
+  } else {
+    timerDisplay.textContent =
+      formattedMinutes + ":" + formattedSeconds;
+  }
+}
+
+
+  function pauseTimer() {
+    if (timerInterval !== null) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    if (endTime !== null) {
+      remainingSeconds = Math.max(
+        0,
+        Math.ceil((endTime - Date.now()) / 1000)
+      );
+    }
+
+    endTime = null;
+    updateDisplay();
+  }
+
+  function startTimer() {
+
+
+if (!audioContext) {
+  const AudioContextClass =
+    window.AudioContext || window.webkitAudioContext;
+
+  if (AudioContextClass) {
+    audioContext = new AudioContextClass();
+  }
+}
+
+if (audioContext && audioContext.state === "suspended") {
+  audioContext.resume();
+}
+
+
+    if (timerInterval !== null || remainingSeconds <= 0) {
+      return;
+    }
+
+    endTime = Date.now() + remainingSeconds * 1000;
+
+    timerInterval = setInterval(() => {
+      remainingSeconds = Math.max(
+        0,
+        Math.ceil((endTime - Date.now()) / 1000)
+      );
+
+      updateDisplay();
+
+      
+if (remainingSeconds === 0) {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  endTime = null;
+
+ timerFinishedMessage.hidden = false;
+dismissAlarmButton.hidden = false;
+startAlarm();
+}
+
+    }, 200);
+  }
+
+  function resetTimer() {
+    stopAlarm();
+    hideFinishedMessage();
+    pauseTimer();
+    remainingSeconds = startingTime;
+    updateDisplay();
+  }
+
+
+const setTimerButton =
+  document.getElementById("setTimerButton");
+
+setTimerButton.addEventListener("click", () => {
+    stopAlarm();
+    hideFinishedMessage();
+  const hours = Number(
+    document.getElementById("timerHours").value
+  );
+
+  const minutes = Number(
+    document.getElementById("timerMinutes").value
+  );
+
+  const seconds = Number(
+    document.getElementById("timerSeconds").value
+  );
+
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    !Number.isInteger(seconds) ||
+    hours < 0 || hours > 99 ||
+    minutes < 0 || minutes > 59 ||
+    seconds < 0 || seconds > 59
+  ) {
+    alert("Please enter a valid timer duration.");
+    return;
+  }
+
+  const totalSeconds =
+    hours * 3600 + minutes * 60 + seconds;
+
+  if (totalSeconds === 0) {
+    alert("Please set a timer longer than zero seconds.");
+    return;
+  }
+
+  pauseTimer();
+
+  startingTime = totalSeconds;
+  remainingSeconds = startingTime;
+
+  updateDisplay();
+});
+
+
+const fullscreenButton =
+  document.getElementById("fullscreenButton");
+
+
+fullscreenButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+
+  document.body.classList.add("timer-fullscreen");
+});
+
+
+
+
+
+document.body.addEventListener("click", () => {
+  if (document.body.classList.contains("timer-fullscreen")) {
+    document.body.classList.remove("timer-fullscreen");
+
+    if (!timerFinishedMessage.hidden) {
+      stopAlarm();
+      hideFinishedMessage();
+    }
+  }
+});
+
+
+
+
+
+  startButton.addEventListener("click", startTimer);
+  pauseButton.addEventListener("click", pauseTimer);
+  resetButton.addEventListener("click", resetTimer);
+
+  updateDisplay();
+</script>
+
+</body>
+</html>
+

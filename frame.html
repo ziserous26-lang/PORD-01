@@ -1,0 +1,696 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PORD-01 | Frame</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .frame {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding: 35px 45px;
+      background: linear-gradient(
+        135deg, #172e3d, #101d29
+      );
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .clock {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 0;
+    }
+
+    .slide {
+      width: 100%;
+      max-width: 950px;
+    }
+
+    .category {
+      color: #89b7dc;
+      font-size: 19px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: clamp(35px, 6vw, 76px);
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .details {
+      color: #c4d3de;
+      font-size: clamp(18px, 2.5vw, 30px);
+      line-height: 1.5;
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #b7c9d5;
+      font-size: 16px;
+    }
+
+    .progress {
+      height: 5px;
+      background: #355266;
+      border-radius: 10px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #8fc5ef;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #b7c9d5;
+    }
+
+    .error { color: #ff9e91; }
+
+    @media (max-width: 600px) {
+      .frame { padding: 20px; }
+      .logo { font-size: 19px; }
+      .clock { font-size: 18px; }
+      footer { font-size: 12px; }
+    }
+
+.slide-layout {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  min-height: 55vh;
+}
+
+.slide-layout .slide {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-action {
+  width: 25%;
+  min-width: 150px;
+  border: none;
+  border-radius: 18px;
+  padding: 20px;
+  background: #88b8d8;
+  color: #172e3d;
+  font-size: clamp(18px, 2.5vw, 30px);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.slide-action[hidden] {
+  display: none;
+}
+
+.slide-action.birthday {
+  background: #e7a8bc;
+  color: #402532;
+}
+
+.slide-action.event {
+  background: #a6c9e3;
+  color: #18364b;
+}
+
+.slide-action.project {
+  background: #94c8a6;
+  color: #183b2a;
+}
+
+.slide-action:active {
+  filter: brightness(0.9);
+}
+
+@media (max-width: 600px) {
+  .slide-layout {
+    gap: 12px;
+    min-height: 45vh;
+  }
+
+  .slide-action {
+    min-width: 95px;
+    padding: 10px;
+    font-size: 16px;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="frame">
+    <header>
+      <div class="logo">PORD-01</div>
+      <div class="clock" id="clock"></div>
+    </header>
+
+    <main>
+     
+<div class="slide-layout">
+
+  <div class="slide">
+    <div class="category" id="category">
+      Connecting
+    </div>
+
+    <div class="title" id="slideTitle">
+      Loading PORD-01...
+    </div>
+
+    <div class="details" id="slideDetails"></div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <button id="slideAction" class="slide-action"
+          type="button" hidden>
+    <span id="actionLabel">View Details</span>
+  </button>
+
+</div>
+
+    </main>
+
+    <footer>
+      <span id="slideCounter">Slide 1 of 1</span>
+      <span id="date"></span>
+    </footer>
+
+    <div class="progress">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    // Enter the same values used in index.html.
+    const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const slides = [];
+    document.querySelector("main").addEventListener("click", function() {
+  window.location.href = "dashboard.html";
+});
+    let slideIndex = 0;
+    let slideSeconds = 15;
+    let slideStarted = Date.now();
+
+    const titleElement =
+      document.getElementById("slideTitle");
+
+    const detailsElement =
+      document.getElementById("slideDetails");
+
+    const categoryElement =
+      document.getElementById("category");
+
+    const statusElement =
+      document.getElementById("status");
+
+    function updateClock() {
+      const now = new Date();
+
+      document.getElementById("clock").textContent =
+        now.toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit"
+        });
+
+      document.getElementById("date").textContent =
+        now.toLocaleDateString([], {
+          weekday: "long",
+          month: "long",
+          day: "numeric"
+        });
+    }
+
+    
+function showSlide() {
+  if (!slides.length) return;
+
+  const slide = slides[slideIndex];
+
+  categoryElement.textContent = slide.category;
+  titleElement.textContent = slide.title;
+  detailsElement.textContent = slide.details;
+
+  const actionButton =
+    document.getElementById("slideAction");
+
+  const actionLabel =
+    document.getElementById("actionLabel");
+
+  // Hide the button unless this slide has a record.
+  actionButton.hidden = true;
+  actionButton.className = "slide-action";
+
+  if (slide.id && slide.type) {
+    actionButton.hidden = false;
+    actionButton.classList.add(slide.type);
+
+    if (slide.type === "birthday") {
+      actionLabel.textContent = "🎂 View Birthday";
+    } else if (slide.type === "event") {
+      actionLabel.textContent = "📅 View Event";
+    } else if (slide.type === "project") {
+      actionLabel.textContent = "🛠️ View Project";
+    }
+  }
+
+  document.getElementById("slideCounter")
+    .textContent =
+      `Slide ${slideIndex + 1} of ${slides.length}`;
+
+  slideStarted = Date.now();
+}
+
+
+    function nextSlide() {
+      if (!slides.length) return;
+
+      slideIndex = (slideIndex + 1) % slides.length;
+      showSlide();
+    }
+
+    function updateProgress() {
+      if (!slides.length) return;
+
+      const elapsed = Date.now() - slideStarted;
+      const duration = slideSeconds * 1000;
+
+      const percentage =
+        Math.min((elapsed / duration) * 100, 100);
+
+      document.getElementById("progressFill")
+        .style.width = percentage + "%";
+
+      if (elapsed >= duration) nextSlide();
+    }
+
+    function formatDate(value) {
+      return new Date(value).toLocaleDateString([], {
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+
+    
+
+function getNextOccurrence(event, fromDate = new Date()) {
+  const original = new Date(event.start_time);
+
+  if (Number.isNaN(original.getTime())) {
+    return null;
+  }
+
+  const recurrence = event.recurrence || "none";
+
+  if (recurrence === "none") {
+    return original >= fromDate ? original : null;
+  }
+
+  const candidate = new Date(original);
+
+  for (let i = 0; i < 10000; i++) {
+    if (candidate >= fromDate) {
+      return candidate;
+    }
+
+    if (recurrence === "daily") {
+      candidate.setDate(candidate.getDate() + 1);
+
+    } else if (recurrence === "weekly") {
+      candidate.setDate(candidate.getDate() + 7);
+
+    } else if (recurrence === "monthly") {
+      const originalDay = original.getDate();
+
+      do {
+        candidate.setDate(1);
+        candidate.setMonth(candidate.getMonth() + 1);
+
+        const lastDay = new Date(
+          candidate.getFullYear(),
+          candidate.getMonth() + 1,
+          0
+        ).getDate();
+
+        if (originalDay <= lastDay) {
+          candidate.setDate(originalDay);
+          break;
+        }
+      } while (true);
+
+    } else if (recurrence === "yearly") {
+      const originalMonth = original.getMonth();
+      const originalDay = original.getDate();
+
+      do {
+        candidate.setFullYear(
+          candidate.getFullYear() + 1,
+          originalMonth,
+          1
+        );
+
+        const lastDay = new Date(
+          candidate.getFullYear(),
+          originalMonth + 1,
+          0
+        ).getDate();
+
+        if (originalDay <= lastDay) {
+          candidate.setDate(originalDay);
+          break;
+        }
+      } while (true);
+
+    } else {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+
+let refreshMinutes = 5;
+
+    async function loadData() {
+
+const currentSlide = slides[slideIndex];
+const previousSlideStarted = slideStarted;
+
+      try {
+        const { data: authData, error: authError } =
+          await client.auth.getUser();
+
+        if (authError || !authData.user) {
+          throw new Error(
+            "Please sign in through index.html first."
+          );
+        }
+
+        const userId = authData.user.id;
+
+        const { data: settings, error: settingsError } =
+          await client
+            .from("settings")
+            .select("*")
+            .eq("user_id", userId)
+            .single();
+
+        if (settingsError) throw settingsError;
+
+        slideSeconds = settings.slideshow_seconds;
+
+
+refreshMinutes = settings.refresh_minutes ?? 5;
+
+
+        
+const { data: events, error: eventsError } =
+  await client
+    .from("events")
+    .select("*")
+    .eq("user_id", userId)
+    .or(
+      `start_time.gte.${new Date().toISOString()},recurrence.neq.none`
+    )
+    .order("start_time", { ascending: true });
+
+
+        if (eventsError) throw eventsError;
+
+        const { data: birthdays, error: birthdayError } =
+          await client
+            .from("birthdays")
+            .select("*")
+            .eq("user_id", userId);
+
+        if (birthdayError) throw birthdayError;
+
+        const { data: projects, error: projectError } =
+          await client
+            .from("projects")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("status", "active");
+
+        if (projectError) throw projectError;
+
+        slides.length = 0;
+
+      
+if (settings.show_events) {
+  const upcomingEvents = [];
+
+  for (const event of events) {
+    const nextDate = getNextOccurrence(event);
+
+    if (!nextDate) continue;
+
+    upcomingEvents.push({
+      event: event,
+      nextDate: nextDate
+    });
+  }
+
+  upcomingEvents.sort(
+    (a, b) => a.nextDate - b.nextDate
+  );
+
+  for (const item of upcomingEvents.slice(0, 10)) {
+    slides.push({
+      type: "event",
+      id: item.event.id,
+      category: item.event.category,
+      title: item.event.title,
+      details: item.event.all_day
+        ? item.nextDate.toLocaleDateString([], {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          }) + " — All Day"
+        : formatDate(item.nextDate)
+    });
+  }
+}
+
+
+        if (settings.show_birthdays) {
+          const today = new Date();
+
+          for (const birthday of birthdays) {
+            const parts = birthday.birth_date
+              .split("-").map(Number);
+
+            let next = new Date(
+              today.getFullYear(),
+              parts[1] - 1,
+              parts[2]
+            );
+
+            if (
+              next < new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate()
+              )
+            ) {
+              next = new Date(
+                today.getFullYear() + 1,
+                parts[1] - 1,
+                parts[2]
+              );
+            }
+
+            slides.push({
+  type: "birthday",
+  id: birthday.id,
+  category: "Birthday",
+  title: birthday.name,
+  details: "Next birthday: " +
+    formatDate(next)
+});
+          }
+        }
+
+        if (settings.show_projects) {
+          for (const project of projects) {
+            
+slides.push({
+  type: "project",
+  id: project.id,
+  category: "Project",
+  title: project.name,
+  details: project.due_date
+    ? "Due: " + formatDate(
+        project.due_date + "T12:00:00"
+      )
+    : "No deadline set"
+});
+
+          }
+        }
+
+        if (!slides.length) {
+          slides.push({
+            category: "Welcome",
+            title: "PORD-01 is ready",
+            details:
+              "Your database is connected. Add events, birthdays, or projects to begin."
+          });
+        }
+
+        
+statusElement.textContent =
+  "Connected to Supabase";
+
+if (currentSlide) {
+  const matchingIndex = slides.findIndex(slide =>
+    slide.type === currentSlide.type &&
+    slide.id === currentSlide.id
+  );
+
+  slideIndex = matchingIndex >= 0 ? matchingIndex : 0;
+} else {
+  slideIndex = 0;
+}
+
+showSlide();
+
+if (currentSlide && slides[slideIndex].type === currentSlide.type &&
+    slides[slideIndex].id === currentSlide.id) {
+  slideStarted = previousSlideStarted;
+}
+
+
+      } catch (error) {
+        categoryElement.textContent = "Connection error";
+        titleElement.textContent = "Unable to load data";
+        detailsElement.textContent = error.message;
+        statusElement.textContent = "";
+        detailsElement.classList.add("error");
+      }
+    }
+
+document.getElementById("slideAction")
+  .addEventListener("click", function(event) {
+
+    // Prevent the background click from
+    // opening the dashboard.
+    event.stopPropagation();
+
+    const slide = slides[slideIndex];
+
+    if (!slide || !slide.id || !slide.type) {
+      return;
+    }
+
+    let destination;
+
+    if (slide.type === "birthday") {
+      destination = "birthdays.html";
+    } else if (slide.type === "event") {
+      destination = "calendar.html";
+    } else if (slide.type === "project") {
+      destination = "projects.html";
+    } else {
+      return;
+    }
+
+    const params = new URLSearchParams({
+      id: slide.id
+    });
+
+    window.location.href =
+      destination + "?" + params.toString();
+  });
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    setInterval(updateProgress, 100);
+
+let lastDataRefresh = Date.now();
+let dataRefreshInProgress = false;
+
+setInterval(async () => {
+  const refreshInterval = refreshMinutes * 60 * 1000;
+
+  if (dataRefreshInProgress) return;
+
+  if (Date.now() - lastDataRefresh >= refreshInterval) {
+    dataRefreshInProgress = true;
+
+    try {
+      await loadData();
+      lastDataRefresh = Date.now();
+    } catch (error) {
+      console.error("Automatic refresh failed:", error);
+    } finally {
+      dataRefreshInProgress = false;
+    }
+  }
+}, 10000);
+
+    loadData();
+  </script>
+</body>
+</html>

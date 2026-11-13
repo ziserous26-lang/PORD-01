@@ -1,0 +1,228 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>PORD-01 | Birthdays</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: auto;
+      padding: 35px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 50px;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    button {
+      background: #29465c;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 15px 22px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .card {
+      background: #24394b;
+      border-radius: 22px;
+      padding: 40px;
+      border-left: 9px solid #e7a8bc;
+    }
+
+    .category {
+      color: #e7a8bc;
+      letter-spacing: 3px;
+      font-size: 17px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 70px);
+      margin: 0 0 25px;
+    }
+
+    .info {
+      font-size: 24px;
+      color: #d2dce5;
+      margin: 18px 0;
+    }
+
+    .message {
+      color: #c4d3de;
+      font-size: 20px;
+      margin-top: 25px;
+    }
+
+    .error { color: #ff9e91; }
+
+    @media (max-width: 600px) {
+      .page { padding: 18px; }
+      .card { padding: 24px; }
+      .info { font-size: 19px; }
+      header { margin-bottom: 25px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="logo">PORD-01</div>
+      <button onclick="window.location.href='frame.html'">
+        ← Slideshow
+      </button>
+    </header>
+
+    <div class="card">
+      <div class="category">BIRTHDAY DETAILS</div>
+      <h1 id="name">Loading...</h1>
+      <div class="info" id="birthdayDate"></div>
+      <div class="info" id="relationship"></div>
+      <div class="info" id="countdown"></div>
+      <div class="message" id="message"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <script>
+    const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+    const client = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    async function loadBirthday() {
+      const message = document.getElementById("message");
+
+      try {
+        const params = new URLSearchParams(
+          window.location.search
+        );
+
+        const birthdayId = params.get("id");
+
+        if (!birthdayId) {
+          throw new Error(
+            "No birthday was selected. Return to the slideshow and select a birthday."
+          );
+        }
+
+        const { data: authData, error: authError } =
+          await client.auth.getUser();
+
+        if (authError || !authData.user) {
+          throw new Error(
+            "Please sign in through index.html first."
+          );
+        }
+
+        const { data: birthday, error } =
+          await client
+            .from("birthdays")
+            .select("*")
+            .eq("id", birthdayId)
+            .eq("user_id", authData.user.id)
+            .single();
+
+        if (error) throw error;
+
+        const [year, month, day] =
+          birthday.birth_date.split("-").map(Number);
+
+        const birthDate = new Date(
+          year, month - 1, day
+        );
+
+        const today = new Date();
+
+        const todayStart = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+
+        let nextBirthday = new Date(
+          today.getFullYear(), month - 1, day
+        );
+
+        if (nextBirthday < todayStart) {
+          nextBirthday = new Date(
+            today.getFullYear() + 1, month - 1, day
+          );
+        }
+
+        const daysUntil = Math.round(
+          (Date.UTC(
+            nextBirthday.getFullYear(),
+            nextBirthday.getMonth(),
+            nextBirthday.getDate()
+          ) - Date.UTC(
+            todayStart.getFullYear(),
+            todayStart.getMonth(),
+            todayStart.getDate()
+          )) / 86400000
+        );
+
+        document.getElementById("name")
+          .textContent = birthday.name;
+
+        document.getElementById("birthdayDate")
+          .textContent = "Birthday: " +
+            birthDate.toLocaleDateString([], {
+              month: "long",
+              day: "numeric"
+            });
+
+        document.getElementById("relationship")
+          .textContent = birthday.relationship
+            ? "Relationship: " + birthday.relationship
+            : "";
+
+        document.getElementById("countdown")
+          .textContent = daysUntil === 0
+            ? "🎉 Today is their birthday!"
+            : daysUntil + " days until their next birthday";
+
+        message.textContent = "";
+
+      } catch (error) {
+        document.getElementById("name")
+          .textContent = "Unable to load birthday";
+        message.className = "message error";
+        message.textContent = error.message;
+      }
+    }
+
+    loadBirthday();
+  </script>
+</body>
+</html>

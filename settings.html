@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>PORD-01 Settings</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #101d29;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #a7c6df;
+      margin-bottom: 20px;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .settings-card {
+      background: #1b3040;
+      padding: 24px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .settings-card h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .setting-description {
+      color: #a7c6df;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin: 20px 0 8px;
+    }
+
+    input {
+      width: 100%;
+      max-width: 200px;
+      box-sizing: border-box;
+      padding: 12px;
+      background: #101d29;
+      color: white;
+      border: 1px solid #526879;
+      border-radius: 8px;
+      font-size: 18px;
+    }
+
+    button {
+      display: block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #397c65;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #48977b;
+    }
+
+    .status {
+      margin-top: 15px;
+      color: #a7c6df;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <a href="dashboard.html" class="back-link">
+      ← Back to Dashboard
+    </a>
+
+    <h1>Settings</h1>
+
+    <div class="settings-card">
+      <h2>Slideshow Settings</h2>
+
+      <p class="setting-description">
+        Control how long each slide appears on your
+        PORD-01 display before switching to the next.
+      </p>
+
+      <label for="slideshowSeconds">
+        Time Between Slides (seconds)
+      </label>
+
+      <input
+        id="slideshowSeconds"
+        type="number"
+        min="3"
+        max="300"
+        value="10"
+      >
+
+      <button id="saveSlideshowButton" type="button">
+        Save Slideshow Settings
+      </button>
+
+      <p class="status" id="slideshowStatus"></p>
+    </div>
+
+
+<div class="settings-card">
+  <h2>Automatic Data Refresh</h2>
+
+  <p class="setting-description">
+    Choose how often PORD-01 checks for updated
+    calendar events, birthdays, and projects.
+  </p>
+
+  <label for="refreshMinutes">
+    Check for Updates Every (minutes)
+  </label>
+
+  <input
+    id="refreshMinutes"
+    type="number"
+    min="1"
+    max="60"
+    value="5"
+  >
+
+  <button id="saveRefreshButton" type="button">
+    Save Refresh Settings
+  </button>
+
+  <p class="status" id="refreshStatus"></p>
+</div>
+
+
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<script>
+  const SUPABASE_URL = "https://xxsxhxuaxhvfhpgodhnk.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn";
+
+  const client = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  const slideshowSecondsInput =
+    document.getElementById("slideshowSeconds");
+
+  const slideshowStatus =
+    document.getElementById("slideshowStatus");
+
+
+const refreshMinutesInput =
+  document.getElementById("refreshMinutes");
+
+const refreshStatus =
+  document.getElementById("refreshStatus");
+
+
+  async function loadSettings() {
+    try {
+      const { data: authData, error: authError } =
+        await client.auth.getUser();
+
+      if (authError || !authData.user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const { data: settings, error } = await client
+        .from("settings")
+        
+.select("slideshow_seconds, refresh_minutes")
+
+        .eq("user_id", authData.user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      
+if (settings) {
+  slideshowSecondsInput.value =
+    settings.slideshow_seconds ?? 10;
+
+  refreshMinutesInput.value =
+    settings.refresh_minutes ?? 5;
+}
+
+
+      slideshowStatus.textContent =
+        "Settings loaded successfully.";
+
+    } catch (error) {
+      slideshowStatus.textContent =
+        "Error loading settings: " + error.message;
+    }
+  }
+
+
+document.getElementById("saveSlideshowButton")
+  .addEventListener("click", async () => {
+
+    const saveButton =
+      document.getElementById("saveSlideshowButton");
+
+    const seconds = Number(slideshowSecondsInput.value);
+
+    if (
+      !Number.isInteger(seconds) ||
+      seconds < 3 ||
+      seconds > 300
+    ) {
+      slideshowStatus.textContent =
+        "Please enter a number between 3 and 300.";
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    slideshowStatus.textContent = "";
+
+    try {
+      const { data: authData, error: authError } =
+        await client.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error("Please sign in again.");
+      }
+
+      const { data: existingSettings, error: lookupError } =
+        await client
+          .from("settings")
+          .select("user_id")
+          .eq("user_id", authData.user.id)
+          .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      let saveError;
+
+      if (existingSettings) {
+        const result = await client
+          .from("settings")
+          .update({
+            slideshow_seconds: seconds
+          })
+          .eq("user_id", authData.user.id)
+          .select();
+
+        saveError = result.error;
+
+        if (!saveError && result.data.length !== 1) {
+          throw new Error("Settings were not updated.");
+        }
+
+      } else {
+        const result = await client
+          .from("settings")
+          .insert({
+            user_id: authData.user.id,
+            slideshow_seconds: seconds
+          })
+          .select();
+
+        saveError = result.error;
+
+        if (!saveError && result.data.length !== 1) {
+          throw new Error("Settings were not created.");
+        }
+      }
+
+      if (saveError) throw saveError;
+
+      slideshowStatus.textContent =
+        "Slideshow settings saved successfully!";
+
+    } catch (error) {
+      slideshowStatus.textContent =
+        "Error saving settings: " + error.message;
+
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = "Save Slideshow Settings";
+    }
+  });
+
+
+document.getElementById("saveRefreshButton")
+  .addEventListener("click", async () => {
+
+    const saveButton =
+      document.getElementById("saveRefreshButton");
+
+    const minutes = Number(refreshMinutesInput.value);
+
+    if (
+      refreshMinutesInput.value.trim() === "" ||
+      !Number.isInteger(minutes) ||
+      minutes < 1 ||
+      minutes > 60
+    ) {
+      refreshStatus.textContent =
+        "Please enter a whole number between 1 and 60.";
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    refreshStatus.textContent = "";
+
+    try {
+      const { data: authData, error: authError } =
+        await client.auth.getUser();
+
+      if (authError || !authData.user) {
+        throw new Error("Please sign in again.");
+      }
+
+      const { data: savedSettings, error } = await client
+        .from("settings")
+        .upsert({
+          user_id: authData.user.id,
+          refresh_minutes: minutes
+        }, {
+          onConflict: "user_id"
+        })
+        .select("refresh_minutes")
+        .single();
+
+      if (error) throw error;
+
+      refreshMinutesInput.value =
+        savedSettings.refresh_minutes;
+
+      refreshStatus.textContent =
+        "Refresh settings saved successfully!";
+
+    } catch (error) {
+      refreshStatus.textContent =
+        "Error saving refresh settings: " + error.message;
+
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = "Save Refresh Settings";
+    }
+  });
+
+
+  loadSettings();
+</script>
+
+
+</body>
+</html>
