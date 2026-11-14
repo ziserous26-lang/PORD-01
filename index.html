@@ -131,11 +131,9 @@
 
         if (settingsError) throw settingsError;
 
-        form.style.display = "none";
-        message.className = "success";
-        message.textContent =
-          "Connected successfully! PORD-01 slideshow interval: " +
-          settings.slideshow_seconds + " seconds.";
+       
+window.location.href = "frame.html";
+
 
       } catch (error) {
         message.className = "error";
