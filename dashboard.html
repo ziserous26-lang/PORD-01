@@ -1,222 +1,215 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-
-  <title>PORD-01 Dashboard</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101820">
+  <title>PORD-01 | Main dashboard</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #101d29;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-
-    .dashboard {
-      min-height: 100vh;
-      padding: 30px 45px;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 40px;
-    }
-
-    .logo {
-      font-size: 28px;
-      font-weight: bold;
-      letter-spacing: 2px;
-    }
-
-    .time {
-      font-size: 22px;
-      color: #c4d3de;
-    }
-
-    h1 {
-      font-size: clamp(28px, 4vw, 46px);
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      color: #a7b9c7;
-      font-size: 18px;
-      margin-bottom: 35px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .tile {
-      border: none;
-      border-radius: 16px;
-      padding: 25px;
-      min-height: 150px;
-      text-align: left;
-      cursor: pointer;
-      color: white;
-      background: #22394c;
-      transition: background 0.2s;
-    }
-
-    .tile:active {
-      background: #36566c;
-    }
-
-    .tile-icon {
-      font-size: 35px;
-      margin-bottom: 18px;
-    }
-
-    .tile-title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    .tile-description {
-      font-size: 15px;
-      color: #c0ced8;
-    }
-
-    .calendar { background: #244b65; }
-    .projects { background: #315346; }
-    .birthdays { background: #644457; }
-    .timer { background: #635138; }
-    .settings { background: #414665; }
-    .slideshow { background: #34566a; }
-
-    @media (max-width: 700px) {
-      .dashboard {
-        padding: 20px;
-      }
-
-      .grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-      }
-
-      .tile {
-        padding: 16px;
-        min-height: 130px;
-      }
-
-      .tile-title {
-        font-size: 19px;
-      }
-
-      .tile-description {
-        font-size: 13px;
-      }
-
-      header {
-        margin-bottom: 25px;
-      }
-    }
+    :root { color-scheme:dark; --bg:#101820; --panel:#18232e; --line:#53616d; --text:#f8fafc; --muted:#c3cbd5; --blue:#8ba5ff; --mint:#a5f5d5; --peach:#ffc2a4; }
+    * {box-sizing:border-box}
+    body {margin:0; min-height:100vh; background:radial-gradient(ellipse at 50% 25%,#17232e 0%,#101820 72%); color:var(--text); font-family:Arial,Helvetica,sans-serif}
+    button,a {font:inherit} button {cursor:pointer}
+    a {text-decoration:none;color:inherit}
+    .shell {width:100%; max-width:1700px; margin:auto; padding:24px clamp(20px,3.1vw,52px) 30px; min-height:100vh; display:flex;flex-direction:column}
+    .top {display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+    .brand {font-size:clamp(25px,2.7vw,40px);font-weight:750;letter-spacing:.1px}
+    .page-title {font-size:clamp(27px,2.6vw,38px);margin:24px 0 18px;letter-spacing:-.5px}
+    .greeting {font-size:clamp(23px,2.5vw,37px);font-weight:750;margin:0 0 8px}
+    .date-line {color:var(--muted);font-size:clamp(15px,1.5vw,24px);margin:0}
+    .outline-btn {border:2px solid #e0e6ec;border-radius:16px;background:transparent;color:#fff;padding:17px 25px;font-size:clamp(16px,1.6vw,24px);font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:14px;white-space:nowrap}
+    .outline-btn:hover,.outline-btn:focus-visible {background:#273543}
+    .outline-btn svg {width:25px;height:25px;flex-shrink:0}
+    .features {display:grid;grid-template-columns:1.58fr 1fr;gap:30px;margin-top:36px}
+    .feature {position:relative;min-height:285px;border:1.5px solid #687b79;border-radius:24px;padding:26px 28px;overflow:hidden;display:flex;flex-direction:column;transition:opacity .2s ease}
+    .feature.project {background:linear-gradient(125deg,#172f2b,#1a2b2a);border-color:#6d9688}
+    .feature.event {background:linear-gradient(125deg,#302927,#27282c);border-color:#9b776d}
+    .feature.event.birthday {background:linear-gradient(125deg,#322637,#282631);border-color:#92719d}
+    .feature.event.sports {background:linear-gradient(125deg,#202b3e,#242936);border-color:#657fa5}
+    .eyebrow {color:var(--mint);font-size:clamp(13px,1.2vw,18px);font-weight:700;text-transform:uppercase;letter-spacing:.1px}
+    .event .eyebrow {color:var(--peach)} .event.birthday .eyebrow {color:#e2b8fa}.event.sports .eyebrow{color:#adc9ff}
+    .feature h2 {font-size:clamp(26px,2.6vw,42px);line-height:1.12;margin:23px 0 13px;letter-spacing:-.5px}
+    .feature p {font-size:clamp(17px,1.7vw,27px);color:var(--muted);margin:0;line-height:1.35}
+    .project .progress-row {display:flex;align-items:center;gap:24px;margin-top:auto;padding-top:20px}
+    .track {height:17px;background:#536f69;border-radius:50px;flex:1;overflow:hidden}
+    .fill {height:100%;width:0%;background:var(--mint);border-radius:inherit;transition:width .4s ease}
+    .percent {font-size:clamp(25px,2.5vw,39px);font-weight:750;color:#b9f8df}
+    .feature .detail {font-size:clamp(14px,1.4vw,22px);color:#c5f4e2;margin-top:11px}
+    .feature.event .event-bottom {margin-top:auto;padding-top:25px;color:var(--peach);font-size:clamp(17px,1.7vw,25px);font-weight:650}
+    .feature.event.birthday .event-bottom{color:#e2b8fa}.feature.event.sports .event-bottom{color:#adc9ff}
+    .tiles {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:28px}
+    .tile {min-width:0;min-height:172px;border:1.5px solid #5e6a76;border-radius:23px;background:linear-gradient(140deg,#1a2631,#1b2630);padding:23px 28px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;transition:background .2s,border-color .2s}
+    .tile:hover,.tile:focus-visible{background:#263542;border-color:#a0b0bf}
+    .tile strong {font-size:clamp(21px,2vw,31px);line-height:1.2}
+    .tile span {font-size:clamp(14px,1.35vw,22px);color:var(--muted);margin-top:15px}
+    .tile .open {font-size:clamp(17px,1.5vw,23px);color:var(--blue);font-weight:700;margin-top:auto;padding-top:17px}
+    .footer {display:flex;justify-content:space-between;align-items:center;gap:18px;border-top:1px solid #56616b;margin-top:auto;padding-top:25px}
+    .footer p {color:var(--muted);font-size:clamp(14px,1.5vw,23px);margin:0}
+    .notice {font-size:13px;color:#f8c99b;min-height:18px;margin:9px 0 0}
+    .hidden {display:none!important}
+    @media (max-width:900px){.features{gap:16px}.tiles{gap:12px}.tile{padding:18px;min-height:145px}.feature{padding:22px;min-height:255px}}
+    @media (max-width:650px){.shell{padding:18px}.top{align-items:center}.outline-btn{padding:12px 14px;border-radius:12px;font-size:14px}.outline-btn svg{width:19px;height:19px}.page-title{margin:24px 0 14px}.features{grid-template-columns:1fr;margin-top:25px}.feature{min-height:245px}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.footer{margin-top:30px}.footer p{max-width:55%}}
+    @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   </style>
 </head>
-
 <body>
-  <div class="dashboard">
-
-    <header>
-      <div class="logo">PORD-01</div>
-      <div class="time" id="clock"></div>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">PORD-01</div>
+      <a class="outline-btn" href="frame.html" aria-label="Resume slideshow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m8 4 12 8-12 8z"/></svg>
+        Resume slideshow
+      </a>
     </header>
 
-    <h1>Dashboard</h1>
-    <p class="subtitle">
-      What would you like to do?
-    </p>
+    <h1 class="page-title">Main dashboard</h1>
+    <h2 class="greeting" id="greeting">Good morning.</h2>
+    <p class="date-line" id="today">Your home, at a glance</p>
 
-    <div class="grid">
+    <section class="features" aria-label="Rotating project and calendar highlights">
+      <a class="feature project" id="projectPreview" href="projects.html" aria-label="Open projects">
+        <div class="eyebrow" id="projectStatus">ACTIVE PROJECT</div>
+        <h2 id="projectName">Your projects</h2>
+        <p id="projectNext">See your project progress and next steps.</p>
+        <div class="progress-row"><div class="track" role="progressbar" aria-label="Project completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="projectTrack"><div class="fill" id="projectFill"></div></div><strong class="percent" id="projectPercent">0%</strong></div>
+        <div class="detail" id="projectDetail">Open your projects to get started</div>
+      </a>
+      <a class="feature event" id="eventPreview" href="calendar.html" aria-label="Open calendar">
+        <div class="eyebrow" id="eventStatus">UPCOMING</div>
+        <h2 id="eventName">Your calendar</h2>
+        <p id="eventDate">Events, birthdays, and more</p>
+        <div class="event-bottom" id="eventDetail">See what's coming up →</div>
+      </a>
+    </section>
 
-      <button class="tile calendar"
-              onclick="openPage('calendar.html')">
-        <div class="tile-icon">📅</div>
-        <div class="tile-title">Calendar</div>
-        <div class="tile-description">
-          View upcoming events and schedules
-        </div>
-      </button>
+    <nav class="tiles" aria-label="PORD-01 apps">
+      <a class="tile" href="calendar.html"><strong>Monthly calendar</strong><span>Every plan in one place</span><span class="open">Open →</span></a>
+      <a class="tile" href="projects.html"><strong>Your projects</strong><span>Big plans. Small steps.</span><span class="open">Open →</span></a>
+      <a class="tile" href="reminders.html"><strong>Reminders</strong><span>Stay on top of important tasks.</span><span class="open">Open →</span></a>
+      <a class="tile" href="timer.html"><strong>Timer</strong><span>Make a little time for focus.</span><span class="open">Open →</span></a>
+    </nav>
 
-      <button class="tile projects"
-              onclick="openPage('projects.html')">
-        <div class="tile-icon">🛠️</div>
-        <div class="tile-title">Projects</div>
-        <div class="tile-description">
-          Track projects and tasks
-        </div>
-      </button>
+    <footer class="footer">
+      <p>Slideshow is paused while you’re here.</p>
+      <a class="outline-btn" href="settings.html" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 14 4l2.5-.3.8 2.5 2.3 1.2-.7 2.4 1.2 2.2-1.2 2.2.7 2.4-2.3 1.2-.8 2.5L14 20l-2 1.5L10 20l-2.5.3-.8-2.5-2.3-1.2.7-2.4L3.9 12l1.2-2.2-.7-2.4 2.3-1.2.8-2.5L10 4z"/><circle cx="12" cy="12" r="3.2"/></svg>
+        Settings
+      </a>
+    </footer>
+    <div class="notice" id="notice" role="status" aria-live="polite"></div>
+  </main>
 
-      <button class="tile birthdays"
-              onclick="openPage('birthdays.html')">
-        <div class="tile-icon">🎂</div>
-        <div class="tile-title">Birthdays</div>
-        <div class="tile-description">
-          Important birthdays and reminders
-        </div>
-      </button>
-
-      <button class="tile timer"
-              onclick="openPage('timer.html')">
-        <div class="tile-icon">⏱️</div>
-        <div class="tile-title">Timer</div>
-        <div class="tile-description">
-          Start a countdown timer
-        </div>
-      </button>
-
-      <button class="tile settings"
-              onclick="openPage('settings.html')">
-        <div class="tile-icon">⚙️</div>
-        <div class="tile-title">Settings</div>
-        <div class="tile-description">
-          Customize your PORD-01
-        </div>
-      </button>
-
-      <button class="tile slideshow"
-              onclick="openPage('frame.html')">
-        <div class="tile-icon">▶️</div>
-        <div class="tile-title">Slideshow</div>
-        <div class="tile-description">
-          Return to the main display
-        </div>
-      </button>
-
-    </div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
-    function openPage(page) {
-      window.location.href = page;
+    'use strict';
+    const SUPABASE_URL = 'https://xxsxhxuaxhvfhpgodhnk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn';
+    const $ = id => document.getElementById(id);
+    const client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+    const displayDate = value => {
+      if (!value) return '';
+      const d = parseDate(value);
+      return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    };
+    function parseDate(value) {
+      if (typeof value !== 'string') return new Date(value);
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(value + 'T12:00:00') : new Date(value);
     }
-
-    function updateClock() {
-      document.getElementById("clock").textContent =
-        new Date().toLocaleTimeString([], {
-          hour: "numeric",
-          minute: "2-digit"
+    function getFirst(obj, keys) {for(const key of keys){if(obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '')return obj[key];}return null;}
+    function formatDays(date) {
+      const today = new Date();today.setHours(0,0,0,0);
+      const target = new Date(date);target.setHours(0,0,0,0);
+      const days = Math.round((target-today)/86400000);
+      return days===0?'TODAY':days===1?'TOMORROW':days>1?'IN '+days+' DAYS':Math.abs(days)+' DAYS AGO';
+    }
+    function setHeader() {
+      const now = new Date();const h=now.getHours();
+      $('greeting').textContent = 'Good '+(h<12?'morning':h<17?'afternoon':'evening')+'.';
+      $('today').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · Your home, at a glance';
+    }
+    let projects=[], events=[], projectIndex=0, eventIndex=0;
+    function renderProject() {
+      if(!projects.length) return;
+      const p=projects[projectIndex%projects.length];
+      const title=String(getFirst(p,['name','title','project_name'])||'Untitled project');
+      const status=String(getFirst(p,['status'])||'active').replace(/[_-]/g,' ');
+      const total=Number(p._total||0), done=Number(p._done||0);
+      const stored=Number(getFirst(p,['progress','completion_percentage','percent_complete']));
+      const percent=Math.max(0,Math.min(100,total?Math.round(done/total*100):Number.isFinite(stored)?stored:0));
+      $('projectName').textContent=title;
+      $('projectStatus').textContent='ACTIVE PROJECT'+(status.toLowerCase()!=='active'?' · '+status.toUpperCase():'');
+      $('projectNext').textContent=p._next?'Next: '+p._next:String(getFirst(p,['description'])||'Track your progress and next steps');
+      $('projectFill').style.width=percent+'%';$('projectPercent').textContent=percent+'%';$('projectTrack').setAttribute('aria-valuenow',percent);
+      const due=displayDate(getFirst(p,['due_date','end_date','deadline']));
+      $('projectDetail').textContent=(total?done+' of '+total+' tasks':'Project progress')+(due?' · Due '+due:'');
+      $('projectPreview').href='project-details.html?id='+encodeURIComponent(p.id);
+    }
+    function renderEvent() {
+      if(!events.length)return;
+      const e=events[eventIndex%events.length];
+      $('eventPreview').className='feature event'+(e.kind==='birthday'?' birthday':e.kind==='sports'?' sports':'');
+      $('eventStatus').textContent=formatDays(e.date);
+      $('eventName').textContent=e.title;
+      $('eventDate').textContent=e.date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+(e.time?' · '+e.time:'');
+      $('eventDetail').textContent=e.kind==='birthday'?'A day to celebrate →':e.kind==='sports'?'Game day →':'View calendar event →';
+    }
+    function addEvent(record,kind) {
+      const rawDate=getFirst(record,kind==='birthday'?['birth_date','birthday','date','date_of_birth']:['start_date','start_time','event_date','date','starts_at','datetime']);
+      if(!rawDate)return;
+      let d=parseDate(rawDate);if(Number.isNaN(d.getTime()))return;
+      const title=String(getFirst(record,kind==='birthday'?['name','title','person_name']:['title','name','event_name'])||'Upcoming event');
+      if(kind==='birthday') {
+        const today=new Date();d.setFullYear(today.getFullYear());d.setHours(12,0,0,0);
+        const midnight=new Date(today);midnight.setHours(0,0,0,0);
+        if(d<midnight)d.setFullYear(d.getFullYear()+1);
+      }
+      const now=new Date();const cutoff=new Date(now);cutoff.setHours(0,0,0,0);
+      if(d<cutoff)return;
+      const category=String(getFirst(record,['category','type','event_type'])||'').toLowerCase();
+      const eventKind=kind==='birthday'?'birthday':category.includes('sport')||category.includes('game')?'sports':'event';
+      const eventTitle=eventKind==='birthday'?(title.toLowerCase().includes('birthday')?title:title+"'s birthday"):title;
+      const hasTime=/T\d\d:\d\d/.test(String(rawDate));
+      events.push({title:eventTitle,date:d,kind:eventKind,time:hasTime?d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):''});
+    }
+    async function loadDashboard() {
+      if(!client){$('notice').textContent='Connection unavailable. Check your internet connection.';return;}
+      try {
+        const {data:{session},error:authError}=await client.auth.getSession();
+        if(authError)throw authError;
+        if(!session){window.location.replace('index.html');return;}
+        const userId=session.user.id;
+        const [projectResult,taskResult,eventResult,birthdayResult]=await Promise.all([
+          client.from('projects').select('*').eq('user_id',userId),
+          client.from('tasks').select('*').eq('user_id',userId),
+          client.from('events').select('*').eq('user_id',userId),
+          client.from('birthdays').select('*').eq('user_id',userId)
+        ]);
+        const errors=[projectResult,taskResult,eventResult,birthdayResult].filter(x=>x.error).map(x=>x.error.message);
+        if(errors.length)console.warn('Dashboard data:',errors.join('; '));
+        const tasks=taskResult.data||[];
+        projects=(projectResult.data||[]).filter(p=>!['archived','deleted','completed'].includes(String(p.status||'').toLowerCase()));
+        projects.forEach(p=>{
+          const linked=tasks.filter(t=>String(t.project_id)===String(p.id));
+          p._total=linked.length;
+          p._done=linked.filter(t=>t.completed===true||t.is_completed===true||['done','completed'].includes(String(t.status||'').toLowerCase())).length;
+          const next=linked.find(t=>!(t.completed===true||t.is_completed===true||['done','completed'].includes(String(t.status||'').toLowerCase())));
+          p._next=next?getFirst(next,['title','name','task_name']):null;
         });
+        projects.sort((a,b)=>String(getFirst(a,['due_date','end_date'])||'9999').localeCompare(String(getFirst(b,['due_date','end_date'])||'9999')));
+        if(projects.length)renderProject();
+        events=[];
+        (eventResult.data||[]).forEach(e=>addEvent(e,'event'));
+        (birthdayResult.data||[]).forEach(b=>addEvent(b,'birthday'));
+        events.sort((a,b)=>a.date-b.date);
+        if(events.length)renderEvent();
+        if(errors.length)$('notice').textContent='Some previews could not be loaded. You can still use the navigation buttons.';
+      }catch(error){console.error(error);$('notice').textContent='Could not refresh dashboard previews. Please check your connection.';}
     }
-
-    updateClock();
-    setInterval(updateClock, 1000);
+    setHeader();
+    loadDashboard();
+    setInterval(()=>{setHeader();if(projects.length>1){projectIndex++;renderProject();}if(events.length>1){eventIndex++;renderEvent();}},8000);
+    setInterval(loadDashboard,60000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadDashboard();});
   </script>
 </body>
 </html>
