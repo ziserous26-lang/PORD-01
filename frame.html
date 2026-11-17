@@ -7,8 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 'use strict';
-const URL='https://xxsxhxuaxhvfhpgodhnk.supabase.co',KEY='sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn';
-const db=window.supabase?window.supabase.createClient(URL,KEY):null;
+const SUPABASE_URL='https://xxsxhxuaxhvfhpgodhnk.supabase.co',KEY='sb_publishable_zdPwmxzkFiMTyGqaW0w15Q_iT4RAILn';
+const db=window.supabase?window.supabase.createClient(SUPABASE_URL,KEY):null;
 const $=id=>document.getElementById(id);
 function stage(message){window.PORD_STAGE=message;const el=$('bootStatus');if(el)el.textContent=message;const err=$('error');if(err)err.textContent=message;}
 stage('Connecting to Supabase…');
