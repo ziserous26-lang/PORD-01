@@ -32,7 +32,14 @@
 .sports .team-emblem.home{left:-4%}.sports .team-emblem.away{right:-4%}
 .sports .team-emblem img{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
 .sports .match-circle{width:min(43vw,77vh);height:min(43vw,77vh);background:#17282e;border:6px solid #f5f7f9}
-</style></head><body><div class="screen" id="screen"><div id="slides"><section class="slide active"><div class="empty"><h1>PORD-01</h1><p id="bootStatus">Loading your slideshow…</p></div></section></div><div id="reminderOverlay" class="reminder-overlay" role="alert" aria-live="assertive" style="display:none"><div class="alert-bell" aria-hidden="true"><svg viewBox="0 0 64 64" width="70" height="70" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 46h34c-6-6-7-12-7-21a10 10 0 0 0-20 0c0 9-1 15-7 21Z"/><path d="M27 51a5 5 0 0 0 10 0"/><path d="M32 11V7"/></svg></div><div class="alert-message" id="alertMessage"></div><div class="alert-sub" id="alertSub"></div><div class="alert-dismiss">Tap anywhere to dismiss</div></div><div class="error-strip" id="error"></div></div>
+
+/* Slideshow navigation stays above slides but below alarm overlays. */
+.slide-nav{position:absolute;bottom:10px;z-index:20;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.36);border-radius:13px;background:rgba(12,23,34,.48);color:#fff;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.slide-nav svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.slide-nav.prev{left:12px}.slide-nav.next{right:12px}
+.slide-nav:active{background:rgba(255,255,255,.24)}
+.slide-nav:focus-visible{outline:3px solid #86bfff;outline-offset:2px}
+</style></head><body><div class="screen" id="screen"><div id="slides"><section class="slide active"><div class="empty"><h1>PORD-01</h1><p id="bootStatus">Loading your slideshow…</p></div></section></div><button id="slidePrevious" class="slide-nav prev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button><button id="slideNext" class="slide-nav next" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><div id="reminderOverlay" class="reminder-overlay" role="alert" aria-live="assertive" style="display:none"><div class="alert-bell" aria-hidden="true"><svg viewBox="0 0 64 64" width="70" height="70" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 46h34c-6-6-7-12-7-21a10 10 0 0 0-20 0c0 9-1 15-7 21Z"/><path d="M27 51a5 5 0 0 0 10 0"/><path d="M32 11V7"/></svg></div><div class="alert-message" id="alertMessage"></div><div class="alert-sub" id="alertSub"></div><div class="alert-dismiss">Tap anywhere to dismiss</div></div><div class="error-strip" id="error"></div></div>
 <script>window.PORD_BOOT_TIME=Date.now();window.PORD_STAGE="Loading JavaScript";setTimeout(function(){var e=document.getElementById("bootStatus");if(e&&e.getAttribute("data-ready")!=="yes")e.textContent="Still loading: "+window.PORD_STAGE+". Check Wi-Fi or sign in again.";},9000);</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -148,8 +155,13 @@ function dismissed(key){try{return localStorage.getItem('pord-dismiss-'+key)==='
 function markDismissed(key){try{localStorage.setItem('pord-dismiss-'+key,'1')}catch(e){}}
 function checkReminders(){if(activeAlert)return;const now=new Date();const grace=10*60*1000;for(const r of reminderRecords){const d=reminderOccurrence(r,now);if(!d)continue;const elapsed=now.getTime()-d.getTime();if(elapsed<0||elapsed>grace)continue;const key=String(r.id)+'-'+d.getTime();if(dismissed(key))continue;activeAlert={key};$('alertMessage').textContent=r.title||'Reminder';$('alertSub').textContent=r.notes||'';$('reminderOverlay').style.display='flex';return;}}
 $('reminderOverlay').addEventListener('click',function(e){e.stopPropagation();if(!activeAlert)return;markDismissed(activeAlert.key);activeAlert=null;this.style.display='none';slideSince=Date.now();checkReminders();});
+// Arrows navigate without triggering the slideshow's normal click-to-open behavior.
+function moveSlide(step){if(activeAlert||!slides.length)return;index=(index+step+slides.length)%slides.length;show();}
+$('slidePrevious').addEventListener('click',e=>{e.stopPropagation();moveSlide(-1);});
+$('slideNext').addEventListener('click',e=>{e.stopPropagation();moveSlide(1);});
+// Project slides deep-link into the matching project task Gantt chart.
 // Any tap opens dashboard; the rightmost quarter is reserved for calendar on non-sports slides.
-$('screen').addEventListener('click',e=>{if(activeAlert)return;const s=slides[index];if(s&&s.type!=='sports'&&e.clientX/window.innerWidth>.75){location.href='calendar.html';return;}location.href='dashboard.html';});
+$('screen').addEventListener('click',e=>{if(activeAlert)return;const s=slides[index];if(s&&s.type==='project'&&s.project&&s.project.id!=null){location.href='projects.html?project='+encodeURIComponent(String(s.project.id));return;}if(s&&s.type!=='sports'&&e.clientX/window.innerWidth>.75){location.href='calendar.html';return;}location.href='dashboard.html';});
 (async()=>{await load();loadTeams().then(()=>{if(slides.length)render();});})();setInterval(tick,500);let last=Date.now();setInterval(async()=>{if(Date.now()-last>=refreshMs){last=Date.now();await load();loadTeams().then(()=>{if(slides.length)render();});}},10000);
 window.addEventListener('error',function(e){const el=document.getElementById('error');if(el)el.textContent='Page error: '+(e.message||'Unknown error');});
 </script></body></html>

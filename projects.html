@@ -107,5 +107,13 @@ $('projectForm').onsubmit=async e=>{
 };
 function syncModeButtons(){document.querySelectorAll('[data-mode]').forEach(x=>x.classList.toggle('selected',x.dataset.mode===mode));}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;syncModeButtons();renderChart();});
-(async()=>{try{if(await initData()){renderCards();renderChart();}}catch(e){showError(e);$('cards').innerHTML='<div class="empty">Unable to load projects. Check the message below.</div>'}})();
+(async()=>{try{if(await initData()){
+ const requestedId=new URLSearchParams(location.search).get('project');
+ if(requestedId&&projects.some(item=>String(item.id)===requestedId)){
+   selectedProjectId=requestedId;
+   mode='week';
+   syncModeButtons();
+ }
+ renderCards();renderChart();
+}}catch(e){showError(e);$('cards').innerHTML='<div class="empty">Unable to load projects. Check the message below.</div>'}})();
 </script></body></html>
