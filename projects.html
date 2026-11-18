@@ -41,7 +41,7 @@ function renderChart(){
  const getStart=r=>selected?asDate(prop(r,['start_date','start_at'])):asDate(projectStart(r));
  const getEnd=r=>selected?asDate(prop(r,['end_date','due_date','due_at'])):asDate(projectDue(r));
  const starts=rows.map(getStart).filter(Boolean),ends=rows.map(getEnd).filter(Boolean);
- let anchor=mode==='week'?now:(starts.length?new Date(Math.min(...starts.map(d=>d.getTime()))):now);
+ let anchor=mode==='week'&&selected?(starts.length?new Date(Math.min(...starts.map(d=>d.getTime()))):now):mode==='week'?now:(starts.length?new Date(Math.min(...starts.map(d=>d.getTime()))):now);
  if(!selected&&anchor>now)anchor=now;
  let first=startOf(anchor,mode);
  let latest=ends.length?new Date(Math.max(...ends.map(d=>d.getTime()))):advance(first,mode,2);
@@ -53,10 +53,14 @@ function renderChart(){
  const axis=boundaries.slice(0,-1).map(d=>`<span>${mode==='week'?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):mode==='month'?d.toLocaleDateString('en-US',{month:'short',year:'numeric'}):'Q'+(Math.floor(d.getMonth()/3)+1)+' '+d.getFullYear()}</span>`).join('');
  const lines=rows.map(r=>{
   const m=selected?null:metrics(r),a=getStart(r),b=getEnd(r),name=selected?taskTitle(r):projTitle(r);
-  const begin=a||b||asDate(r.created_at)||now,finish=b||a||advance(begin,'week',1);
+  const begin=a||b||asDate(r.created_at)||now;
+  // Gantt dates are inclusive: a one-day task must occupy one full day.
+  // The exclusive end boundary also gives every dated task a visible bar.
+  const endDate=b||a;
+  const finish=endDate?new Date(endDate.getFullYear(),endDate.getMonth(),endDate.getDate()+1):advance(begin,'week',1);
   const left=Math.max(0,Math.min(100,100*(begin-min)/span));
   const right=Math.max(0,Math.min(100,100*(finish-min)/span));
-  const visible=finish>=new Date(min)&&begin<=new Date(max)&&right>left;
+  const visible=finish>new Date(min)&&begin<new Date(max)&&right>left;
   const color=selected?(taskDone(r)?'green':'yellow'):m.color;
   const percentage=selected?(taskDone(r)?100:0):m.pct;
   const note=selected?(a||b?`${a?fmtDate(a):'Unscheduled'} – ${b?fmtDate(b):'No end'}`:'Dates not set'):'Open project';
