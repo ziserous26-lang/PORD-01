@@ -102,4 +102,5 @@ $('reminderOverlay').addEventListener('click',function(e){e.stopPropagation();if
 $('screen').addEventListener('click',e=>{if(activeAlert)return;const s=slides[index];if(s&&s.type!=='sports'&&e.clientX/window.innerWidth>.75){location.href='calendar.html';return;}location.href='dashboard.html';});
 (async()=>{await load();loadTeams().then(()=>{if(slides.length)render();});})();setInterval(tick,500);let last=Date.now();setInterval(async()=>{if(Date.now()-last>=refreshMs){last=Date.now();await load();loadTeams().then(()=>{if(slides.length)render();});}},10000);
 window.addEventListener('error',function(e){const el=document.getElementById('error');if(el)el.textContent='Page error: '+(e.message||'Unknown error');});
-</script></body></html>
+</script><script src="pord-timer-alert.js"></script>
+</body></html>

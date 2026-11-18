@@ -145,4 +145,5 @@ $('form').onsubmit=async e=>{
 };
 $('delete').onclick=async()=>{if(!editingTask||!confirm('Delete this task?'))return;const {error}=await db.from('tasks').delete().eq('id',editingTask.id).eq('user_id',user.id);if(error){showError(error);return;}tasks=tasks.filter(t=>t.id!==editingTask.id);for(const t of tasks.filter(t=>String(t.depends_on_task_id)===String(editingTask.id))){const payload={depends_on_task_id:null};const r=await db.from('tasks').update(payload).eq('id',t.id).eq('user_id',user.id);if(r.error){showError(r.error);return;}Object.assign(t,payload)}closeModal();render();};
 (async()=>{try{if(!projectId){$('status').textContent='No project selected. Return to Projects and choose one.';return;}if(await initData()){current=projects.find(p=>String(p.id)===projectId);if(!current){$('status').textContent='Project not found.';return;}await synchronizeDependencies();render();}}catch(e){showError(e);}})();
-</script></body></html>
+</script><script src="pord-timer-alert.js"></script>
+</body></html>

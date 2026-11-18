@@ -85,7 +85,7 @@ function show(){
  document.title=$('clock').textContent+' | PORD-01 Focus Timer';
 }
 function beep(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=740;gain.gain.setValueAtTime(.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+.02);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.5);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.52);setTimeout(()=>ctx.close(),700)}catch(e){}}
-function tick(){if(!running)return;remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));if(remaining===0){running=false;completed=true;clearInterval(interval);interval=null;beep();$('status').textContent='Time is up!'}show();persist()}
+function tick(){if(!running)return;remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));if(remaining===0){running=false;completed=true;clearInterval(interval);interval=null;$('status').textContent='Time is up!'}show();persist()}
 function startInterval(){clearInterval(interval);interval=setInterval(tick,250)}
 function startPause(){unlockAudio();if(completed){remaining=selected;completed=false}if(running){tick();running=false;clearInterval(interval);interval=null;$('status').textContent='Timer paused.'}else{if(remaining<=0)remaining=selected;running=true;endAt=Date.now()+remaining*1000;startInterval();$('status').textContent=''}persist();show()}
 function reset(){stopAlarm();running=false;completed=false;clearInterval(interval);interval=null;remaining=selected;$('status').textContent='';persist();show()}
@@ -117,7 +117,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeWheel()});
 try{
  const saved=JSON.parse(localStorage.getItem(storageKey)||'null');
  if(saved){const seconds=saved.version===2?Number(saved.selected):Number(saved.selected)*60;
- if(Number.isFinite(seconds)&&seconds>=1&&seconds<=86399){selected=seconds;remaining=Math.max(0,Math.min(selected,Number(saved.remaining)||0));completed=!!saved.completed;running=!!saved.running;endAt=Number(saved.endAt)||0;if(running){startInterval();tick()}else if(completed){remaining=0;startAlarm()}}}
+ if(Number.isFinite(seconds)&&seconds>=1&&seconds<=86399){selected=seconds;remaining=Math.max(0,Math.min(selected,Number(saved.remaining)||0));completed=!!saved.completed;running=!!saved.running;endAt=Number(saved.endAt)||0;if(running){startInterval();tick()}else if(completed){remaining=0}}}
 }catch(e){}
-show();if(completed&&!alarmActive)startAlarm();document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if(completed&&!alarmActive)startAlarm()}});window.addEventListener('pagehide',persist);
-</script></body></html>
+show();document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();}});window.addEventListener('pagehide',persist);
+document.addEventListener('pord-timer-dismissed',()=>{stopAlarm();completed=false;running=false;remaining=selected;endAt=0;show()});
+</script><script src="pord-timer-alert.js"></script>
+</body></html>
