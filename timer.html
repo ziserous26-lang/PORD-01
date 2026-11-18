@@ -18,7 +18,13 @@
 .timeup-caption{font-size:clamp(20px,3vw,38px);font-weight:700}
 @keyframes timeup-pulse{0%,100%{background:#650008}50%{background:#ff2029}}
 @media(prefers-reduced-motion:reduce){.timeup-overlay{animation-duration:2.5s}}
-</style></head><body><div class="app"><header class="header"><div class="brand">PORD-01</div><a class="nav" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="15" rx="2"/><path d="M8 22h8M12 18v4"/></svg>Dashboard</a></header><main class="panel"><div class="center" id="center"><div class="eyebrow">FOCUS TIMER</div><div class="clock" id="clock" role="timer" aria-live="off">25:00</div><div class="sub" id="subtitle">Choose a duration. Make room for one thing.</div><div class="presets"><button class="preset" data-minutes="5">5 min</button><button class="preset" data-minutes="15">15 min</button><button class="preset active" data-minutes="25">25 min</button><button class="preset custom" id="custom">Custom</button></div><div class="actions"><button class="primary" id="start">Start timer</button><button class="reset" id="reset">Reset</button></div><div class="status" id="status"></div></div></main></div>
+
+/* Timer sound selection: fits without altering the timer card layout. */
+.sound-row{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:0;color:#cbd8e8;font-size:17px;font-weight:700}
+.sound-row select{min-height:43px;border:1px solid #62788b;border-radius:10px;background:#263a4b;color:#f8faff;padding:7px 12px;font:inherit;font-size:16px}
+.sound-row select{min-width:205px;max-width:60vw}
+@media(max-height:690px){.sound-row{font-size:14px;gap:8px}.sound-row select{min-height:37px;font-size:14px}}
+</style></head><body><div class="app"><header class="header"><div class="brand">PORD-01</div><a class="nav" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="15" rx="2"/><path d="M8 22h8M12 18v4"/></svg>Dashboard</a></header><main class="panel"><div class="center" id="center"><div class="eyebrow">FOCUS TIMER</div><div class="clock" id="clock" role="timer" aria-live="off">25:00</div><div class="sub" id="subtitle">Choose a duration. Make room for one thing.</div><div class="presets"><button class="preset" data-minutes="5">5 min</button><button class="preset" data-minutes="15">15 min</button><button class="preset active" data-minutes="25">25 min</button><button class="preset custom" id="custom">Custom</button></div><div class="sound-row"><label for="timerSound">Alarm sound</label><select id="timerSound" aria-label="Alarm sound"><option value="default">Default chime</option><option value="airsoft-fatty">Airsoft Fatty</option><option value="darius">Darius</option><option value="evil-spell">Evil Spell</option><option value="ice-cream">Ice Cream</option><option value="property-dispute">Property Dispute</option><option value="punisher">Punisher</option></select></div><div class="actions"><button class="primary" id="start">Start timer</button><button class="reset" id="reset">Reset</button></div><div class="status" id="status"></div></div></main></div>
 <div class="timeup-overlay" id="timeupOverlay" role="alertdialog" aria-modal="true" aria-label="Timer finished" tabindex="0"><div class="timeup-title">Time’s Up!</div><div class="timeup-caption">Tap anywhere to dismiss</div></div><div class="wheel-backdrop" id="wheelModal" role="dialog" aria-modal="true" aria-labelledby="wheelTitle"><div class="wheel-dialog"><h2 id="wheelTitle">Set custom timer</h2><p class="wheel-help">Swipe up or down to select a duration</p><div class="wheel-group"><div class="wheel-col"><div class="wheel-label">Hours</div><div class="wheel" id="wheelHours"></div></div><div class="wheel-col"><div class="wheel-label">Minutes</div><div class="wheel" id="wheelMinutes"></div></div><div class="wheel-col"><div class="wheel-label">Seconds</div><div class="wheel" id="wheelSeconds"></div></div></div><div class="wheel-actions"><button type="button" id="wheelCancel">Cancel</button><button type="button" class="wheel-confirm" id="wheelSet">Set timer</button></div></div></div><script>
 
 'use strict';
@@ -121,5 +127,18 @@ try{
 }catch(e){}
 show();document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();}});window.addEventListener('pagehide',persist);
 document.addEventListener('pord-timer-dismissed',()=>{stopAlarm();completed=false;running=false;remaining=selected;endAt=0;show()});
+</script><script>
+// Save the chosen alarm sound. Playback only starts when the timer expires.
+(function(){
+ const key='pord01-timer-sound';
+ const select=document.getElementById('timerSound');
+ try{
+  const saved=localStorage.getItem(key);
+  if(saved&&Array.from(select.options).some(option=>option.value===saved))select.value=saved;
+ }catch(e){}
+ select.addEventListener('change',function(){
+  try{localStorage.setItem(key,select.value)}catch(e){}
+ });
+})();
 </script><script src="pord-timer-alert.js"></script>
 </body></html>
