@@ -10,13 +10,67 @@
 .wheel-actions{display:flex;justify-content:center;gap:18px;margin-top:18px}.wheel-actions button{min-height:54px;min-width:135px;border-radius:12px;border:1px solid #637b90;background:#263a4b;color:white;font-size:19px;font-weight:800}.wheel-actions .wheel-confirm{background:#2365fa;border-color:#2365fa}
 @media(max-height:650px){.wheel{height:162px}.wheel-item{height:54px}.wheel-col:after{height:54px}.wheel-dialog{padding:12px 22px}.wheel-dialog h2{font-size:24px}}
 @media(max-width:700px){.wheel-group{gap:6px}.wheel-item{font-size:24px}.wheel-dialog{padding:13px}.wheel-actions button{min-width:105px}}
+
+/* Full-screen timer completion alarm */
+.timeup-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:22px;text-align:center;color:#fff;background:#830009;cursor:pointer;touch-action:manipulation;animation:timeup-pulse 1.15s ease-in-out infinite}
+.timeup-overlay.visible{display:flex}
+.timeup-title{font-size:clamp(75px,13vw,190px);font-weight:900;line-height:1.05;letter-spacing:-.05em;text-shadow:0 5px 30px #36000088}
+.timeup-caption{font-size:clamp(20px,3vw,38px);font-weight:700}
+@keyframes timeup-pulse{0%,100%{background:#650008}50%{background:#ff2029}}
+@media(prefers-reduced-motion:reduce){.timeup-overlay{animation-duration:2.5s}}
 </style></head><body><div class="app"><header class="header"><div class="brand">PORD-01</div><a class="nav" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="15" rx="2"/><path d="M8 22h8M12 18v4"/></svg>Dashboard</a></header><main class="panel"><div class="center" id="center"><div class="eyebrow">FOCUS TIMER</div><div class="clock" id="clock" role="timer" aria-live="off">25:00</div><div class="sub" id="subtitle">Choose a duration. Make room for one thing.</div><div class="presets"><button class="preset" data-minutes="5">5 min</button><button class="preset" data-minutes="15">15 min</button><button class="preset active" data-minutes="25">25 min</button><button class="preset custom" id="custom">Custom</button></div><div class="actions"><button class="primary" id="start">Start timer</button><button class="reset" id="reset">Reset</button></div><div class="status" id="status"></div></div></main></div>
-<div class="wheel-backdrop" id="wheelModal" role="dialog" aria-modal="true" aria-labelledby="wheelTitle"><div class="wheel-dialog"><h2 id="wheelTitle">Set custom timer</h2><p class="wheel-help">Swipe up or down to select a duration</p><div class="wheel-group"><div class="wheel-col"><div class="wheel-label">Hours</div><div class="wheel" id="wheelHours"></div></div><div class="wheel-col"><div class="wheel-label">Minutes</div><div class="wheel" id="wheelMinutes"></div></div><div class="wheel-col"><div class="wheel-label">Seconds</div><div class="wheel" id="wheelSeconds"></div></div></div><div class="wheel-actions"><button type="button" id="wheelCancel">Cancel</button><button type="button" class="wheel-confirm" id="wheelSet">Set timer</button></div></div></div><script>
+<div class="timeup-overlay" id="timeupOverlay" role="alertdialog" aria-modal="true" aria-label="Timer finished" tabindex="0"><div class="timeup-title">Time’s Up!</div><div class="timeup-caption">Tap anywhere to dismiss</div></div><div class="wheel-backdrop" id="wheelModal" role="dialog" aria-modal="true" aria-labelledby="wheelTitle"><div class="wheel-dialog"><h2 id="wheelTitle">Set custom timer</h2><p class="wheel-help">Swipe up or down to select a duration</p><div class="wheel-group"><div class="wheel-col"><div class="wheel-label">Hours</div><div class="wheel" id="wheelHours"></div></div><div class="wheel-col"><div class="wheel-label">Minutes</div><div class="wheel" id="wheelMinutes"></div></div><div class="wheel-col"><div class="wheel-label">Seconds</div><div class="wheel" id="wheelSeconds"></div></div></div><div class="wheel-actions"><button type="button" id="wheelCancel">Cancel</button><button type="button" class="wheel-confirm" id="wheelSet">Set timer</button></div></div></div><script>
 
 'use strict';
 const $=id=>document.getElementById(id);
 let selected=25*60,remaining=selected,running=false,endAt=0,interval=null,completed=false;
 const storageKey='pord01-focus-timer';
+let audioContext=null,alarmLoop=null,alarmActive=false;
+function unlockAudio(){
+ try{
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!C)return;
+  if(!audioContext)audioContext=new C();
+  if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+ }catch(e){}
+}
+function alarmChime(){
+ if(!alarmActive||!audioContext)return;
+ try{
+  const t=audioContext.currentTime;
+  [0,.18,.40].forEach((offset,i)=>{
+   const osc=audioContext.createOscillator(),gain=audioContext.createGain();
+   osc.type='square';osc.frequency.setValueAtTime(i===1?660:880,t+offset);
+   gain.gain.setValueAtTime(.0001,t+offset);
+   gain.gain.linearRampToValueAtTime(.10,t+offset+.018);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+offset+.15);
+   osc.connect(gain);gain.connect(audioContext.destination);
+   osc.start(t+offset);osc.stop(t+offset+.16);
+  });
+ }catch(e){}
+}
+function startAlarm(){
+ alarmActive=true;
+ $('timeupOverlay').classList.add('visible');
+ $('timeupOverlay').focus({preventScroll:true});
+ unlockAudio();
+ alarmChime();
+ if(!alarmLoop)alarmLoop=setInterval(alarmChime,1600);
+}
+function stopAlarm(){
+ alarmActive=false;
+ if(alarmLoop){clearInterval(alarmLoop);alarmLoop=null}
+ $('timeupOverlay').classList.remove('visible');
+}
+function dismissAlarm(){
+ stopAlarm();
+ completed=false;remaining=selected;running=false;
+ $('status').textContent='';
+ persist();show();
+}
+$('timeupOverlay').addEventListener('click',dismissAlarm);
+$('timeupOverlay').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();dismissAlarm()}});
+
 const two=n=>String(n).padStart(2,'0');
 const format=seconds=>{const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return h?`${two(h)}:${two(m)}:${two(s)}`:`${two(m)}:${two(s)}`};
 function persist(){try{localStorage.setItem(storageKey,JSON.stringify({version:2,selected,remaining,running,endAt,completed}))}catch(e){}}
@@ -33,8 +87,8 @@ function show(){
 function beep(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const ctx=new C(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=740;gain.gain.setValueAtTime(.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+.02);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.5);osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.52);setTimeout(()=>ctx.close(),700)}catch(e){}}
 function tick(){if(!running)return;remaining=Math.max(0,Math.ceil((endAt-Date.now())/1000));if(remaining===0){running=false;completed=true;clearInterval(interval);interval=null;beep();$('status').textContent='Time is up!'}show();persist()}
 function startInterval(){clearInterval(interval);interval=setInterval(tick,250)}
-function startPause(){if(completed){remaining=selected;completed=false}if(running){tick();running=false;clearInterval(interval);interval=null;$('status').textContent='Timer paused.'}else{if(remaining<=0)remaining=selected;running=true;endAt=Date.now()+remaining*1000;startInterval();$('status').textContent=''}persist();show()}
-function reset(){running=false;completed=false;clearInterval(interval);interval=null;remaining=selected;$('status').textContent='';persist();show()}
+function startPause(){unlockAudio();if(completed){remaining=selected;completed=false}if(running){tick();running=false;clearInterval(interval);interval=null;$('status').textContent='Timer paused.'}else{if(remaining<=0)remaining=selected;running=true;endAt=Date.now()+remaining*1000;startInterval();$('status').textContent=''}persist();show()}
+function reset(){stopAlarm();running=false;completed=false;clearInterval(interval);interval=null;remaining=selected;$('status').textContent='';persist();show()}
 function choose(seconds){selected=seconds;reset()}
 document.querySelectorAll('[data-minutes]').forEach(b=>b.onclick=()=>choose(Number(b.dataset.minutes)*60));
 $('start').onclick=startPause;$('reset').onclick=reset;
@@ -63,7 +117,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeWheel()});
 try{
  const saved=JSON.parse(localStorage.getItem(storageKey)||'null');
  if(saved){const seconds=saved.version===2?Number(saved.selected):Number(saved.selected)*60;
- if(Number.isFinite(seconds)&&seconds>=1&&seconds<=86399){selected=seconds;remaining=Math.max(0,Math.min(selected,Number(saved.remaining)||0));completed=!!saved.completed;running=!!saved.running;endAt=Number(saved.endAt)||0;if(running){startInterval();tick()}}}
+ if(Number.isFinite(seconds)&&seconds>=1&&seconds<=86399){selected=seconds;remaining=Math.max(0,Math.min(selected,Number(saved.remaining)||0));completed=!!saved.completed;running=!!saved.running;endAt=Number(saved.endAt)||0;if(running){startInterval();tick()}else if(completed){remaining=0;startAlarm()}}}
 }catch(e){}
-show();document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});window.addEventListener('pagehide',persist);
+show();if(completed&&!alarmActive)startAlarm();document.addEventListener('visibilitychange',()=>{if(!document.hidden){tick();if(completed&&!alarmActive)startAlarm()}});window.addEventListener('pagehide',persist);
 </script></body></html>
