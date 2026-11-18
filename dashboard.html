@@ -115,6 +115,14 @@
     .tile.app-tile .app-art {width:clamp(65px,7vw,96px);height:clamp(65px,7vw,96px);flex:0 1 auto;max-height:65%;filter:drop-shadow(0 5px 7px rgba(0,0,0,.18))}
     .tile.app-tile .app-name {font-size:clamp(17px,1.65vw,25px);line-height:1.1;white-space:nowrap}
     .tile.app-tile:active {transform:scale(.985)}
+    /* Color fills the entire existing tile; icon and label are black. */
+    .tile.app-calendar {background:#3188ff!important;color:#101010!important;border-color:#3188ff!important}
+    .tile.app-projects {background:#45d58b!important;color:#101010!important;border-color:#45d58b!important}
+    .tile.app-reminders {background:#ff5867!important;color:#101010!important;border-color:#ff5867!important}
+    .tile.app-timer {background:#ffca42!important;color:#101010!important;border-color:#ffca42!important}
+    .tile.app-tile .app-name {color:#101010!important}
+    .tile.app-tile .app-art {filter:none}
+    .tile.app-tile:hover {filter:brightness(1.07)}
   </style>
 </head>
 <body>
@@ -148,19 +156,19 @@
 
     <nav class="tiles" aria-label="PORD-01 apps">
       <a class="tile app-tile app-calendar" href="calendar.html" aria-label="Open Calendar">
-        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect x="13" y="17" width="70" height="65" rx="12" fill="#2E85FF"/><rect x="13" y="29" width="70" height="14" fill="#1461CC"/><path d="M29 12v14M67 12v14" stroke="#CDE5FF" stroke-width="7" stroke-linecap="round"/><rect x="25" y="51" width="13" height="11" rx="3" fill="white"/><rect x="45" y="51" width="13" height="11" rx="3" fill="white"/><rect x="65" y="51" width="9" height="11" rx="3" fill="white"/><rect x="25" y="68" width="13" height="7" rx="3" fill="white"/><rect x="45" y="68" width="13" height="7" rx="3" fill="white"/></svg>
+        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#101010" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><rect x="19" y="23" width="58" height="56" rx="7"/><path d="M19 38h58M33 15v17M63 15v17"/><path d="M31 49h8M47 49h8M63 49h2M31 63h8M47 63h8"/></svg>
         <strong class="app-name">Calendar</strong>
       </a>
       <a class="tile app-tile app-projects" href="projects.html" aria-label="Open Projects">
-        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M30 16a21 21 0 0 1 28 18L79 55a10 10 0 0 1-14 14L44 48a21 21 0 0 1-27-27l13 13 13-13z" fill="#4DD58D" stroke="#1E9D59" stroke-width="3" stroke-linejoin="round"/><path d="M56 54 30 80" stroke="#D9FFE8" stroke-width="7" stroke-linecap="round"/></svg>
+        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#101010" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 79 56 39"/><path d="M47 18c13-6 27-1 33 11l-13-3-10 11 3 12c-13 3-26-6-27-19"/><path d="m22 73 8 8"/></svg>
         <strong class="app-name">Projects</strong>
       </a>
       <a class="tile app-tile app-reminders" href="reminders.html" aria-label="Open Reminders">
-        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M48 16c-16 0-26 11-26 27v15c0 6-3 10-8 14h68c-5-4-8-8-8-14V43c0-16-10-27-26-27z" fill="#FF5C67" stroke="#CB263B" stroke-width="3" stroke-linejoin="round"/><path d="M39 79a10 10 0 0 0 18 0" fill="#FF9BA3"/><rect x="44" y="8" width="8" height="12" rx="4" fill="#FFC3C8"/></svg>
+        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#101010" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M48 16c-17 0-27 12-27 29v13c0 6-4 11-9 15h72c-5-4-9-9-9-15V45c0-17-10-29-27-29Z"/><path d="M40 81c2 8 14 8 16 0M48 10v7"/></svg>
         <strong class="app-name">Reminders</strong>
       </a>
       <a class="tile app-tile app-timer" href="timer.html" aria-label="Open Timer">
-        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="48" cy="53" r="31" fill="#FFC947" stroke="#E8A61A" stroke-width="5"/><path d="M48 53V34M48 53l15 8" stroke="#634400" stroke-width="6" stroke-linecap="round"/><circle cx="48" cy="53" r="4" fill="#634400"/><rect x="38" y="7" width="20" height="10" rx="4" fill="#FFE8A2"/><path d="M70 22l8-8" stroke="#FFE8A2" stroke-width="6" stroke-linecap="round"/></svg>
+        <svg class="app-art" viewBox="0 0 96 96" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#101010" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><circle cx="48" cy="55" r="29"/><path d="M48 55V36M48 55l14 9M37 12h22M48 12v13M72 28l8-8"/></svg>
         <strong class="app-name">Timer</strong>
       </a>
     </nav>
