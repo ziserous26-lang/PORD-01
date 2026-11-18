@@ -8,7 +8,7 @@
 .day-entries{position:absolute;left:6px;right:6px;top:calc(34px + var(--span-count) * 27px);bottom:24px;display:flex;flex-direction:column;gap:5px;overflow:hidden}
 .day-entries .entry{flex:0 0 auto;min-height:0}
 .overflow-arrow{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);z-index:3;color:#e2edff;font-size:15px;font-weight:800;line-height:19px;white-space:nowrap;pointer-events:none;background:#253b50;border-radius:8px;padding:0 9px}
-.overflow-arrow span{font-size:11px}
+.overflow-arrow span{font-size:11px}.overflow-arrow{color:#2b85ff;background:transparent;font-size:24px;line-height:19px;padding:0 6px;text-shadow:0 1px 3px #000}.overflow-arrow span{font-size:11px;color:#cde0ff;vertical-align:3px}
 .span-bar{z-index:2;border-radius:7px}
 @media(max-width:800px){.day .number{top:4px;left:4px}.day-entries{left:3px;right:3px}.overflow-arrow{font-size:13px}}
 </style></head><body><script src="pord-timer-alert.js"></script><div class="app"><header class="top"><div class="brand">PORD-01</div><div class="crumb">Your home &nbsp;/&nbsp; <b>Calendar</b></div><div class="grow"></div><input class="search" id="search" placeholder="⌕  Search your calendar" aria-label="Search events"><a class="nav" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="15" rx="2"/><path d="M8 22h8M12 18v4"/></svg>Dashboard</a></header><section class="calendars"><div><h2>Your calendars</h2><div class="chips"><button class="chip family on" data-cat="family">Family</button><button class="chip projects on" data-cat="projects">Projects</button><button class="chip holidays on" data-cat="holidays">Holidays</button><button class="chip sports on" data-cat="sports">Sports</button><button class="chip birthdays on" data-cat="birthdays">Birthdays</button></div></div><button class="new" id="new">＋ &nbsp; New event</button></section><section class="controls"><div class="month-name" id="heading"></div><button class="square" id="prev" aria-label="Previous">‹</button><button class="square" id="next" aria-label="Next">›</button><button class="today" id="today">Today</button><div class="mode-wrap"><button class="mode active" data-mode="month">Month</button><button class="mode" data-mode="week">Week</button></div></section><main class="calendar" id="calendar"><div class="weekdays"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div><div class="days" id="days"></div></main><div class="status" id="status" role="status"></div></div><div class="backdrop" id="modal"><div class="dialog"><h2 id="dialogTitle">New event</h2><form id="form"><div class="form-grid">
@@ -83,7 +83,14 @@ function render(){
    const visibleSpanningHere=visibleSpans.filter(r=>overlaps(r,d));
    const outside=mode==='month'&&d.getMonth()!==first.getMonth();
    // Reserve room for date and spanning bars; never allow event chips to move the date.
-   const entryLimit=mode==='week'?12:Math.max(0,3-visibleSpans.length);
+   // Only render chips that physically fit above the bottom overflow indicator.
+   // This prevents clipped events from hiding without an arrow on short month rows.
+   const gridHeight=$('days').clientHeight;
+   const rowHeight=gridHeight/rows;
+   const topInset=34+visibleSpans.length*27;
+   const bottomInset=24;
+   const available=Math.max(0,rowHeight-topInset-bottomInset);
+   const entryLimit=Math.max(0,Math.floor((available+5)/34));
    const shown=list.slice(0,entryLimit);
    const hiddenCount=list.length-shown.length+spanningHere.length-visibleSpanningHere.length;
    html+=`<div class="day ${outside?'out':''} ${k===key(new Date())?'today-cell':''}" data-date="${k}" style="grid-row:${row+1};grid-column:${col+1};--span-count:${visibleSpans.length}"><span class="number">${d.getDate()}</span><div class="day-entries">${shown.map(x=>`<button class="entry ${x.cat}" data-source="${esc(x.source)}" data-id="${esc(x.id)}" title="${esc(x.title)}">${esc(clockTime(x)==='All day'||clockTime(x)==='Time unspecified'?'':clockTime(x)+' · ')}${esc(x.title)}</button>`).join('')}</div>${hiddenCount>0?`<span class="overflow-arrow" aria-label="${hiddenCount} additional events; open day details">⌄ <span>+${hiddenCount}</span></span>`:''}</div>`;
