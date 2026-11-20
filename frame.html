@@ -64,17 +64,30 @@ const taskDone=t=>t.completed===true||t.is_complete===true||t.is_completed===tru
 const taskTitle=t=>pick(t,['title','name','task_name'])||'Next task';
 
 let liveGame=null,liveId=null,liveScores=null,livePowerPlay=null,liveReady=false,livePolling=false,liveSound=null;
-const NHL='https://api-web.nhle.com/v1';
+const NHL=SUPABASE_URL+'/functions/v1/nhl-live';
 const cbj=t=>t&&(t.abbrev==='CBJ'||t.id===29);
 const inProgress=g=>['LIVE','CRIT'].includes(String(g.gameState||''));
 const nhlDate=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-async function nhlFetch(url){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),10000);try{const r=await fetch(url,{cache:'no-store',signal:ctl.signal});if(!r.ok)throw Error('NHL HTTP '+r.status);return r.json();}finally{clearTimeout(t);}}
+async function nhlFetch(url){
+ const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),12000);
+ try{
+  const session=await db.auth.getSession();
+  const token=session.data&&session.data.session&&session.data.session.access_token;
+  const headers={'apikey':KEY};
+  if(token)headers.Authorization='Bearer '+token;
+  const r=await fetch(url,{cache:'no-store',signal:ctl.signal,headers});
+  if(!r.ok)throw Error('NHL proxy HTTP '+r.status);
+  const payload=await r.json();
+  if(payload&&payload.error)throw Error('NHL proxy: '+payload.error);
+  return payload.data&&Array.isArray(payload.data.games)?payload.data:payload;
+ }finally{clearTimeout(t);}
+}
 function nhlAlert(path){try{if(liveSound){liveSound.pause();liveSound=null;}liveSound=new Audio(path);liveSound.loop=false;liveSound.play().catch(e=>console.warn('Sound blocked',e));}catch(e){console.warn(e);}}
 function nhlTeamName(t){return [t.placeName?.default||'',t.commonName?.default||''].join(' ').trim()||t.abbrev||'Team';}
 function liveSportSlide(g){return {type:'sports',key:'nhl-live-'+g.id,live:true,home:nhlTeamName(g.homeTeam),away:nhlTeamName(g.awayTeam),when:date(g.startTimeUTC)||new Date(),homeScore:g.homeTeam.score||0,awayScore:g.awayTeam.score||0,gameId:g.id};}
 function gameModeShuffle(items){if(!liveGame)return shuffleSlides(items);const other=shuffleSlides(items.filter(s=>s.type!=='sports'));const game=liveSportSlide(liveGame);if(!other.length)return [game];const result=[];for(const item of other)result.push(game,item);return result;}
 function updateLiveDisplay(){document.querySelectorAll('.sports.live-game').forEach(el=>{const a=el.querySelector('.live-score.home'),b=el.querySelector('.live-score.away'),c=el.querySelector('.live-status');if(a)a.textContent=liveGame.homeTeam.score??0;if(b)b.textContent=liveGame.awayTeam.score??0;if(c)c.textContent='PERIOD '+(liveGame.period||'?')+' '+(liveGame.clock?.timeRemaining||'');});}
-async function pollNhl(){if(livePolling)return;livePolling=true;try{const today=new Date(),yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);let data=await nhlFetch(NHL+'/score/'+nhlDate(today));let game=(data.games||[]).find(g=>(cbj(g.homeTeam)||cbj(g.awayTeam))&&inProgress(g));if(!game){data=await nhlFetch(NHL+'/score/'+nhlDate(yesterday));game=(data.games||[]).find(g=>(cbj(g.homeTeam)||cbj(g.awayTeam))&&inProgress(g));}if(!game){if(liveGame){liveGame=null;liveId=null;liveScores=null;livePowerPlay=null;liveReady=false;await load();}return;}const same=String(game.id)===String(liveId);const oldScores=liveScores,oldPP=livePowerPlay;const scores=[Number(game.homeTeam?.score)||0,Number(game.awayTeam?.score)||0];let pp=null;try{const pbp=await nhlFetch(NHL+'/gamecenter/'+game.id+'/play-by-play');const last=(pbp.plays||[]).slice().reverse().find(p=>/^\d{4}$/.test(String(p.situationCode||'')));if(last){const code=String(last.situationCode);const away=Number(code[1]),home=Number(code[2]);pp=cbj(game.homeTeam)?home>away:away>home;}}catch(e){console.warn('NHL power-play feed:',e);}liveGame=game;liveId=game.id;liveScores=scores;if(pp!==null)livePowerPlay=pp;if(same&&liveReady){if(oldScores&&(scores[0]>oldScores[0]||scores[1]>oldScores[1]))nhlAlert('sounds/jackets-goal.mp3');else if(pp===true&&oldPP===false)nhlAlert('sounds/jackets-powerplay.mp3');}liveReady=true;if(!same||!slides.some(s=>s.live))await load();else updateLiveDisplay();}catch(e){console.warn('NHL live update unavailable:',e);}finally{livePolling=false;}}
+async function pollNhl(){if(livePolling)return;livePolling=true;try{const today=new Date(),yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);let data=await nhlFetch(NHL+'?date='+nhlDate(today));let game=(data.games||[]).find(g=>(cbj(g.homeTeam)||cbj(g.awayTeam))&&inProgress(g));if(!game){data=await nhlFetch(NHL+'?date='+nhlDate(yesterday));game=(data.games||[]).find(g=>(cbj(g.homeTeam)||cbj(g.awayTeam))&&inProgress(g));}if(!game){if(liveGame){liveGame=null;liveId=null;liveScores=null;livePowerPlay=null;liveReady=false;await load();}return;}const same=String(game.id)===String(liveId);const oldScores=liveScores,oldPP=livePowerPlay;const scores=[Number(game.homeTeam?.score)||0,Number(game.awayTeam?.score)||0];let pp=null;try{const pbp=await nhlFetch(NHL+'?gameId='+encodeURIComponent(game.id));const last=(pbp.plays||[]).slice().reverse().find(p=>/^\d{4}$/.test(String(p.situationCode||'')));if(last){const code=String(last.situationCode);const away=Number(code[1]),home=Number(code[2]);pp=cbj(game.homeTeam)?home>away:away>home;}}catch(e){console.warn('NHL power-play feed:',e);}liveGame=game;liveId=game.id;liveScores=scores;if(pp!==null)livePowerPlay=pp;if(same&&liveReady){if(oldScores&&(scores[0]>oldScores[0]||scores[1]>oldScores[1]))nhlAlert('Columbus Blue Jackets 2025 Goal Horn.mp3');else if(pp===true&&oldPP===false)nhlAlert('Jackets on the POWERPLAY!!!.mp3');}liveReady=true;if(!same||!slides.some(s=>s.live))await load();else updateLiveDisplay();}catch(e){console.warn('NHL live update unavailable:',e);}finally{livePolling=false;}}
 
 let slides=[],index=0,slideMs=15000,refreshMs=300000,slideSince=Date.now(),loading=false,reminderRecords=[],activeAlert=null;
 const weekMs=7*86400000;
@@ -179,4 +192,4 @@ $('slideNext').addEventListener('click',e=>{e.stopPropagation();moveSlide(1);});
 $('screen').addEventListener('click',e=>{if(activeAlert)return;const s=slides[index];if(s&&s.type==='project'&&s.project&&s.project.id!=null){location.href='projects.html?project='+encodeURIComponent(String(s.project.id));return;}if(s&&s.type!=='sports'&&e.clientX/window.innerWidth>.75){location.href='calendar.html';return;}location.href='dashboard.html';});
 (async()=>{await load();loadTeams().then(()=>{if(slides.length)render();});await pollNhl();})();setInterval(pollNhl,20000);setInterval(tick,500);let last=Date.now();setInterval(async()=>{if(Date.now()-last>=refreshMs){last=Date.now();await load();loadTeams().then(()=>{if(slides.length)render();});}},10000);
 window.addEventListener('error',function(e){const el=document.getElementById('error');if(el)el.textContent='Page error: '+(e.message||'Unknown error');});
-</script></body></html>
+</script><script src="pord-timer-alert.js"></script></body></html>
